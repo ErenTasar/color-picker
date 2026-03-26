@@ -117,7 +117,8 @@ body::before{
   /* ── Data ── */
   var H=[],M=[],A=["Oca","\u015eub","Mar","Nis","May","Haz","Tem","A\u011fu","Eyl","Eki","Kas","Ara"],D=[];
   var i;
-  for(i=0;i<24;i++)H[i]=i<10?"0"+i:""+i;
+  /* Hour: 00,01,...,23,00 — starts and ends with 00 */
+  for(i=0;i<=24;i++){var h=i%24;H[i]=h<10?"0"+h:""+h;}
   /* Minute: 00,05,10,...,55,00 — starts and ends with 00 */
   for(i=0;i<=12;i++)M[i]=((i%12)*5<10?"0":"")+((i%12)*5);
   for(i=1;i<=31;i++)D[i-1]=""+i;
@@ -138,7 +139,7 @@ body::before{
   var initDayMax=daysIn(initMon)-1;
 
   var F=[H,M,A,D];
-  var MX=[23,12,11,initDayMax];
+  var MX=[24,12,11,initDayMax]; /* MX[0]=24 for 25 values (00..23..00) */
   var idx=[initH,initMIdx,initMon,initDay];
   var MST=[2,1,1,3];
   var DEAD=.02,DEADHI=.98,DINV=1/.96,PAD=.04,DWMS=150,VELTHR=.15;
@@ -150,7 +151,7 @@ body::before{
     var mx=MX[fi],j,r,p=new Array(mx+1),f=new Array(mx+1);
     for(j=0;j<=mx;j++){
       r=j/mx;
-      p[j]=(8+87*r)+"%";
+      p[j]=(8+84*r)+"%";
       f[j]=(.5+1.3*r)+" 1 0px";
     }
     PCT[fi]=p;FLX[fi]=f;
@@ -257,7 +258,7 @@ body::before{
   }
 
   function rowBounds(){
-    var r=R.getBoundingClientRect(),w=r.width*.97,pp=w*PAD;
+    var r=R.getBoundingClientRect(),w=r.width*.93,pp=w*PAD;
     drag.pL=r.left+r.width*.5-w*.5+pp;
     drag.pI=1/(w-2*pp);
   }
