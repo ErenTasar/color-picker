@@ -45,52 +45,52 @@ body::before{
 
 /* ── Separator ── */
 .sep{
-  flex:0 0 auto;font-size:22px;font-weight:200;
-  color:rgba(255,255,255,.08);line-height:48px;margin:0 1px;
+  flex:0 0 auto;font-size:24px;font-weight:300;
+  color:rgba(255,255,255,.14);line-height:48px;margin:0 2px;
   transition:opacity .3s,flex .4s var(--ease),font-size .4s,margin .4s;
 }
 .row.expanded .sep{flex:0 0 0;opacity:0;font-size:0;margin:0}
 
 /* ── Cell ── */
 .cell{
-  flex:1 1 0;min-width:0;overflow:hidden;border-radius:22px;
+  flex:1 1 0;min-width:0;overflow:hidden;border-radius:24px;
   transition:flex .4s var(--ease),opacity .2s,border-radius .4s;
 }
-.cell.on{border-radius:27px}
+.cell.on{border-radius:40px}
 .cell.dimmed{flex:0 0 0 !important;opacity:0;pointer-events:none}
 
 /* ── Track ── */
 .track{
-  width:100%;position:relative;height:44px;border-radius:22px;
+  width:100%;position:relative;height:48px;border-radius:24px;
   cursor:grab;
   background:rgba(var(--c),.1);border:1px solid rgba(var(--c),.06);
   transition:height .4s var(--ease),border-radius .4s,box-shadow .4s,border-color .3s;
 }
 .cell.on .track{
-  height:54px;border-radius:27px;cursor:grabbing;
+  height:80px;border-radius:40px;cursor:grabbing;
   background:rgba(var(--c),.06);border-color:rgba(var(--c),.1);
-  box-shadow:0 0 32px rgba(var(--c),.12),inset 0 0 14px rgba(var(--c),.04);
+  box-shadow:0 0 40px rgba(var(--c),.15),inset 0 0 18px rgba(var(--c),.05);
 }
 .cell.dimmed .track{height:0;border-width:0}
 
 /* ── Fill ── */
 .fill{
-  position:absolute;top:0;bottom:0;left:0;border-radius:22px;
+  position:absolute;top:0;bottom:0;left:0;border-radius:24px;
   background:rgba(var(--c),.55);
   transition:width .1s ease-out,border-radius .4s;will-change:width;
 }
-.cell.on .fill{border-radius:27px;background:rgba(var(--c),.6)}
+.cell.on .fill{border-radius:40px;background:rgba(var(--c),.6)}
 .cell.snapping .fill{transition:width .25s var(--ease),border-radius .4s}
 
 /* ── Value label inside pill ── */
 .val{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-size:22px;font-weight:700;color:rgba(255,255,255,.88);
+  font-size:24px;font-weight:700;color:rgba(255,255,255,.88);
   letter-spacing:-1px;z-index:3;pointer-events:none;
   text-shadow:0 1px 3px rgba(0,0,0,.25);
-  transition:font-size .4s var(--ease),color .2s,letter-spacing .3s;
+  transition:font-size .4s var(--ease),color .2s,letter-spacing .3s,text-shadow .4s;
 }
-.cell.on .val{font-size:38px;color:#fff;letter-spacing:-2px}
+.cell.on .val{font-size:52px;color:#fff;letter-spacing:-3px;text-shadow:0 2px 8px rgba(0,0,0,.3),0 0 30px rgba(var(--c),.2)}
 
 /* ── Ticks ── */
 .ticks{
@@ -341,14 +341,6 @@ body::before{
     cleanup();
   }
 
-  function cancel(){
-    if(!drag)return;
-    var fi=drag.fi;
-    idx[fi]=drag.ai;
-    apply(fi);text(fi);
-    cleanup();
-  }
-
   function cleanup(){
     cls(0,false);
     for(var j=0;j<4;j++)cells[j].style.flex=FLX[j][idx[j]];
@@ -359,7 +351,7 @@ body::before{
   document.addEventListener("touchstart",down,{passive:false});
   document.addEventListener("touchmove",move,{passive:false});
   document.addEventListener("touchend",up);
-  document.addEventListener("touchcancel",cancel);
+  document.addEventListener("touchcancel",up);
   document.addEventListener("mousedown",down);
   document.addEventListener("mousemove",move);
   document.addEventListener("mouseup",up);
