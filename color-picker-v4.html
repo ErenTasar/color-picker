@@ -6,6 +6,7 @@
 <title>Pill Picker v4</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,200;500;700&display=swap" rel="stylesheet">
 <style>
+:root{--ease:cubic-bezier(.32,.72,0,1)}
 *{margin:0;padding:0;box-sizing:border-box;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{width:100%;height:100%;overflow:hidden;position:fixed;inset:0;font-family:'DM Sans',system-ui,sans-serif}
 body{background:#08080C}
@@ -28,10 +29,10 @@ body::before{
 .scene{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1}
 
 /* ── Color themes ── */
-.cell[data-f="0"]{--c:94,181,240;--h:#5EB5F0}
-.cell[data-f="1"]{--c:240,112,152;--h:#F07098}
-.cell[data-f="2"]{--c:69,212,138;--h:#45D48A}
-.cell[data-f="3"]{--c:245,197,66;--h:#F5C542}
+.cell[data-f="0"]{--c:94,181,240}
+.cell[data-f="1"]{--c:240,112,152}
+.cell[data-f="2"]{--c:69,212,138}
+.cell[data-f="3"]{--c:245,197,66}
 
 .picker{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
 
@@ -40,7 +41,7 @@ body::before{
   display:flex;align-items:center;
   width:76%;max-width:320px;
   gap:8px;overflow:hidden;
-  transition:width .4s cubic-bezier(.32,.72,0,1),max-width .4s cubic-bezier(.32,.72,0,1),gap .4s;
+  transition:width .4s var(--ease),max-width .4s var(--ease),gap .4s;
 }
 .row.expanded{width:calc(100% - 28px);max-width:460px;gap:0}
 
@@ -48,14 +49,14 @@ body::before{
 .sep{
   flex:0 0 auto;font-size:30px;font-weight:200;
   color:rgba(255,255,255,.1);line-height:48px;margin:0 1px;
-  transition:opacity .3s,flex .4s cubic-bezier(.32,.72,0,1),font-size .4s,margin .4s;
+  transition:opacity .3s,flex .4s var(--ease),font-size .4s,margin .4s;
 }
 .row.expanded .sep{flex:0 0 0;opacity:0;font-size:0;margin:0}
 
 /* ── Cell ── */
 .cell{
   flex:1 1 0;min-width:0;overflow:hidden;border-radius:25px;
-  transition:flex .4s cubic-bezier(.32,.72,0,1),opacity .3s,border-radius .4s;
+  transition:flex .4s var(--ease),opacity .3s,border-radius .4s;
 }
 .cell.on{border-radius:31px}
 .cell.dimmed{flex:0 0 0 !important;opacity:0;pointer-events:none}
@@ -64,9 +65,9 @@ body::before{
 /* ── Track ── */
 .track{
   width:100%;position:relative;height:50px;border-radius:25px;
-  overflow:visible;cursor:grab;
+  cursor:grab;
   background:rgba(var(--c),.1);border:1px solid rgba(var(--c),.06);
-  transition:height .4s cubic-bezier(.32,.72,0,1),border-radius .4s,box-shadow .4s,border-color .3s;
+  transition:height .4s var(--ease),border-radius .4s,box-shadow .4s,border-color .3s;
 }
 .cell.on .track{
   height:62px;border-radius:31px;cursor:grabbing;
@@ -82,7 +83,7 @@ body::before{
   transition:width .1s ease-out,border-radius .4s;will-change:width;
 }
 .cell.on .fill{border-radius:31px;background:rgba(var(--c),.6)}
-.cell.snapping .fill{transition:width .25s cubic-bezier(.32,.72,0,1),border-radius .4s}
+.cell.snapping .fill{transition:width .25s var(--ease),border-radius .4s}
 
 /* ── Value label inside pill ── */
 .val{
@@ -90,7 +91,7 @@ body::before{
   font-size:26px;font-weight:700;color:rgba(255,255,255,.88);
   letter-spacing:-1px;z-index:3;pointer-events:none;
   text-shadow:0 1px 3px rgba(0,0,0,.25);
-  transition:font-size .4s cubic-bezier(.32,.72,0,1),color .2s,letter-spacing .3s;
+  transition:font-size .4s var(--ease),color .2s,letter-spacing .3s;
 }
 .cell.on .val{font-size:38px;color:#fff;letter-spacing:-2px}
 
@@ -166,14 +167,11 @@ body::before{
   var ROW=[0,0,1,1];
 
   /* ── Pre-computed expanded bounds ── */
-  var screenW,expandedW,epp,ePI,ePL;
+  var ePI,ePL;
   function calcBounds(){
-    screenW=window.innerWidth||375;
-    expandedW=Math.min(screenW-28,460);
-    var ew97=expandedW*.97;
-    epp=ew97*PAD;
-    ePL=(screenW-expandedW)*.5+(expandedW-ew97)*.5+epp;
-    ePI=1/(ew97-2*epp);
+    var sw=window.innerWidth||375,ew=Math.min(sw-28,460),ew97=ew*.97,pp=ew97*PAD;
+    ePL=(sw-ew)*.5+(ew-ew97)*.5+pp;
+    ePI=1/(ew97-2*pp);
   }
   calcBounds();
   window.addEventListener("resize",calcBounds);
@@ -222,12 +220,10 @@ body::before{
   for(i=0;i<4;i++){apply(i);text(i)}
 
   /* ── Now markers ── */
-  var nowMarks=new Array(4);
   var nowIdx=[now.getHours(),Math.floor(now.getMinutes()/5),now.getMonth(),now.getDate()-1];
   for(i=0;i<4;i++){
-    nowMarks[i]=document.getElementById("n"+i);
-    if(nowIdx[i]>MX[i])nowIdx[i]=MX[i];
-    nowMarks[i].style.left=PCT[i][nowIdx[i]];
+    var ni=nowIdx[i]>MX[i]?MX[i]:nowIdx[i];
+    document.getElementById("n"+i).style.left=PCT[i][ni];
   }
 
   /* ── State ── */
@@ -358,6 +354,18 @@ body::before{
     }
 
     if(fi===2)syncDayMax();
+    cleanup();
+  }
+
+  function cancel(){
+    if(!drag)return;
+    var fi=drag.fi;
+    idx[fi]=drag.ai;
+    apply(fi);text(fi);
+    cleanup();
+  }
+
+  function cleanup(){
     cls(0,false);
     for(var j=0;j<4;j++)cells[j].style.flex=FLX[j][idx[j]];
     if(raf){cancelAnimationFrame(raf);raf=0}
@@ -367,7 +375,7 @@ body::before{
   document.addEventListener("touchstart",down,{passive:false});
   document.addEventListener("touchmove",move,{passive:false});
   document.addEventListener("touchend",up);
-  document.addEventListener("touchcancel",up);
+  document.addEventListener("touchcancel",cancel);
   document.addEventListener("mousedown",down);
   document.addEventListener("mousemove",move);
   document.addEventListener("mouseup",up);
