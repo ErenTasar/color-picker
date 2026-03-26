@@ -161,8 +161,8 @@ body::before{
       <span class="sep">/</span>
       <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
     </div>
+    <button class="fab" id="fab">+</button>
   </div>
-  <button class="fab" id="fab">+</button>
 </div>
 <script>
 (function(){
@@ -407,7 +407,7 @@ body::before{
   var scene=document.querySelector(".scene");
 
   fab.addEventListener("click",function(){
-    taskIn.style.display="";
+    taskIn.style.display="block";
     fab.classList.add("hidden");
     taskIn.focus();
   });
