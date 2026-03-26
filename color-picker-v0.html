@@ -454,7 +454,7 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
 
   /* ── Keyboard: keep composer above virtual keyboard ── */
   function syncKB(){
-    if(!window.visualViewport)return;
+    if(!window.visualViewport||!isOpen)return;
     var off=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
     comp.style.bottom=Math.max(0,off)+"px";
   }
