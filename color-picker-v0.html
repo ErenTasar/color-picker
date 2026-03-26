@@ -276,6 +276,7 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
   function closeComp(){
     isOpen=false;
     comp.classList.remove("open");
+    comp.style.bottom="";
     taskIn.value="";taskIn.style.height="auto";taskIn.blur();
     pillRelease();
     setTimeout(function(){fab.classList.remove("hidden")},300);
@@ -285,7 +286,13 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
   taskIn.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();closeComp()}});
   comp.addEventListener("click",function(e){if(e.target===comp)closeComp()});
 
-  /* ── DOM-measured bounds + re-anchor ── */
+  /* ── Bounds: cell track for initial touch, row for re-anchor ── */
+  function cellBounds(fi){
+    var el=cells[fi].querySelector(".track");
+    var r=el.getBoundingClientRect(),pp=r.width*PAD;
+    drag.pL=r.left+pp;
+    drag.pI=1/(r.width-2*pp);
+  }
   function rowBounds(){
     var r=rowEls[ROW[drag.fi]].getBoundingClientRect(),w=r.width*.86,pp=w*PAD;
     drag.pL=r.left+r.width*.5-w*.5+pp;
@@ -358,9 +365,8 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
 
     var fi=+tr.parentNode.dataset.f,t0=pnow();
     drag={fi:fi,mx:MX[fi],ms:MST[fi],ax:0,ai:0,dc:0,dt:t0,dv:-1,ld:0,sc:0,pL:0,pI:0};
-    pillExpand(fi);
-    /* Measure after expand class applied (before transition finishes) */
-    rowBounds();
+    cellBounds(fi);  /* measure track at current size before expand */
+    pillExpand(fi);  /* then expand — nextB will re-anchor to row bounds */
     lx=gx(e);flx=lx;
     idx[fi]=absIdx(lx);
     drag.ax=lx;drag.ai=idx[fi];drag.dc=idx[fi];
