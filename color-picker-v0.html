@@ -144,11 +144,12 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
 /* ── Task input ── */
 .task-input{
   flex:1;min-width:0;align-self:center;
-  background:none;border:none;outline:none;
+  background:none;border:none;outline:none;resize:none;
   font-family:'DM Sans',system-ui,sans-serif;
   font-size:20px;font-weight:500;color:rgba(255,255,255,.9);
-  padding:0 4px;
+  padding:0 4px;line-height:1.3;
   caret-color:rgba(255,255,255,.5);
+  overflow:hidden;max-height:120px;
   transition:opacity .3s,flex .3s;
 }
 .task-input::placeholder{color:rgba(255,255,255,.2);font-weight:300}
@@ -174,7 +175,7 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
         <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
       </div>
     </div>
-    <input class="task-input" id="taskIn" type="text" placeholder="Görev adı..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
+    <textarea class="task-input" id="taskIn" rows="1" placeholder="Görev adı..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"></textarea>
   </div>
 </div>
 
@@ -275,7 +276,7 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
   function closeComp(){
     isOpen=false;
     comp.classList.remove("open");
-    taskIn.value="";taskIn.blur();
+    taskIn.value="";taskIn.style.height="auto";taskIn.blur();
     pillRelease();
     setTimeout(function(){fab.classList.remove("hidden")},300);
   }
@@ -444,6 +445,23 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
   document.addEventListener("mousedown",down);
   document.addEventListener("mousemove",move);
   document.addEventListener("mouseup",up);
+
+  /* ── Keyboard: keep composer above virtual keyboard ── */
+  function syncKB(){
+    if(!window.visualViewport)return;
+    var off=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
+    comp.style.bottom=Math.max(0,off)+"px";
+  }
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize",syncKB);
+    window.visualViewport.addEventListener("scroll",syncKB);
+  }
+
+  /* ── Textarea auto-resize ── */
+  taskIn.addEventListener("input",function(){
+    taskIn.style.height="auto";
+    taskIn.style.height=Math.min(taskIn.scrollHeight,120)+"px";
+  });
 })();
 </script>
 </body>
