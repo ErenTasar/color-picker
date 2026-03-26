@@ -284,6 +284,7 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
 
   fab.addEventListener("click",openComp);
   taskIn.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();closeComp()}});
+  taskIn.addEventListener("blur",function(){setTimeout(function(){if(isOpen&&!drag)closeComp()},150)});
   comp.addEventListener("click",function(e){if(e.target===comp)closeComp()});
 
   /* ── Bounds: cell track for initial touch, row for re-anchor ── */
