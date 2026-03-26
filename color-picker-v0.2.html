@@ -34,7 +34,7 @@ body::before{
 .cell[data-f="2"]{--c:69,212,138}
 .cell[data-f="3"]{--c:245,197,66}
 
-.picker{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+.picker{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
 
 /* ── Row ── */
 .row{
@@ -123,12 +123,15 @@ body::before{
 .row:nth-child(2) .cell:nth-child(1){animation-delay:.15s}
 .row:nth-child(2) .cell:nth-child(3){animation-delay:.2s}
 
-/* ── Task input above pills (absolute — no layout shift) ── */
+/* ── Action area: FAB and input share same slot ── */
+.action-slot{
+  display:flex;align-items:center;justify-content:center;
+  min-height:56px;margin-top:16px;width:76%;max-width:320px;
+}
+
 .task-input{
   display:none;
-  position:absolute;bottom:calc(100% + 8px);
-  left:50%;transform:translateX(-50%);
-  width:76%;max-width:320px;
+  width:100%;
   background:none;border:none;outline:none;resize:none;
   font-family:'DM Sans',system-ui,sans-serif;
   font-size:20px;font-weight:500;color:rgba(255,255,255,.9);
@@ -143,16 +146,14 @@ body::before{
   width:56px;height:56px;border-radius:28px;border:none;
   background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);
   font-size:28px;font-weight:200;cursor:pointer;
-  margin-top:20px;transition:opacity .3s,transform .3s;
+  transition:opacity .3s,transform .3s;
 }
 .fab:active{transform:scale(.92)}
-.fab.hidden{opacity:0;pointer-events:none;transform:scale(.8)}
 </style>
 </head>
 <body>
 <div class="scene">
   <div class="picker">
-    <textarea class="task-input" id="taskIn" rows="1" placeholder="Görev adı..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"></textarea>
     <div class="row" id="R0">
       <div class="cell" data-f="0"><div class="track"><div class="fill" id="f0"></div><span class="val" id="d0"></span><div class="ticks" id="t0"></div><div class="now-mark" id="n0"></div></div></div>
       <span class="sep">:</span>
@@ -163,7 +164,10 @@ body::before{
       <span class="sep">/</span>
       <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
     </div>
-    <button class="fab" id="fab">+</button>
+    <div class="action-slot">
+      <textarea class="task-input" id="taskIn" rows="1" placeholder="Görev adı..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"></textarea>
+      <button class="fab" id="fab">+</button>
+    </div>
   </div>
 </div>
 <script>
@@ -409,14 +413,14 @@ body::before{
   var scene=document.querySelector(".scene");
 
   fab.addEventListener("click",function(){
+    fab.style.display="none";
     taskIn.style.display="block";
-    fab.classList.add("hidden");
     taskIn.focus();
   });
 
   function closeInput(){
     taskIn.value="";taskIn.style.height="auto";taskIn.style.display="none";
-    fab.classList.remove("hidden");
+    fab.style.display="";
     scene.style.justifyContent="";scene.style.paddingBottom="";
   }
 
