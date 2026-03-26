@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pill Picker v5</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,200;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ease:cubic-bezier(.32,.72,0,1)}
+*{margin:0;padding:0;box-sizing:border-box;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;position:fixed;inset:0;font-family:'DM Sans',system-ui,sans-serif}
+body{background:#08080C}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  opacity:0;transition:opacity .5s;
+}
+body.glow-0::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 60%,rgba(94,181,240,.07) 0%,transparent 70%)}
+body.glow-1::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 60%,rgba(240,112,152,.07) 0%,transparent 70%)}
+body.glow-2::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 60%,rgba(69,212,138,.07) 0%,transparent 70%)}
+body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 60%,rgba(245,197,66,.07) 0%,transparent 70%)}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 55% 45% at 15% 85%,rgba(25,35,75,.4) 0%,transparent 70%),
+    radial-gradient(ellipse 45% 55% at 85% 15%,rgba(55,20,50,.3) 0%,transparent 70%),
+    radial-gradient(ellipse 35% 35% at 55% 55%,rgba(15,25,45,.25) 0%,transparent 55%);
+  pointer-events:none;z-index:0;
+}
+.scene{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1}
+
+/* ── Color themes ── */
+.cell[data-f="0"]{--c:94,181,240}
+.cell[data-f="1"]{--c:240,112,152}
+.cell[data-f="2"]{--c:69,212,138}
+.cell[data-f="3"]{--c:245,197,66}
+
+/* ── Row ── */
+.row{
+  display:flex;align-items:center;
+  width:80%;max-width:360px;
+  gap:6px;overflow:hidden;
+  transition:width .4s var(--ease),max-width .4s var(--ease),gap .4s;
+}
+.row.expanded{width:calc(100% - 24px);max-width:460px;gap:0}
+
+/* ── Separator ── */
+.sep{
+  flex:0 0 auto;font-size:22px;font-weight:200;
+  color:rgba(255,255,255,.08);line-height:48px;margin:0 1px;
+  transition:opacity .3s,flex .4s var(--ease),font-size .4s,margin .4s;
+}
+.row.expanded .sep{flex:0 0 0;opacity:0;font-size:0;margin:0}
+
+/* ── Cell ── */
+.cell{
+  flex:1 1 0;min-width:0;overflow:hidden;border-radius:22px;
+  transition:flex .4s var(--ease),opacity .2s,border-radius .4s;
+}
+.cell.on{border-radius:27px}
+.cell.dimmed{flex:0 0 0 !important;opacity:0;pointer-events:none}
+
+/* ── Track ── */
+.track{
+  width:100%;position:relative;height:44px;border-radius:22px;
+  cursor:grab;
+  background:rgba(var(--c),.1);border:1px solid rgba(var(--c),.06);
+  transition:height .4s var(--ease),border-radius .4s,box-shadow .4s,border-color .3s;
+}
+.cell.on .track{
+  height:54px;border-radius:27px;cursor:grabbing;
+  background:rgba(var(--c),.06);border-color:rgba(var(--c),.1);
+  box-shadow:0 0 32px rgba(var(--c),.12),inset 0 0 14px rgba(var(--c),.04);
+}
+.cell.dimmed .track{height:0;border-width:0}
+
+/* ── Fill ── */
+.fill{
+  position:absolute;top:0;bottom:0;left:0;border-radius:22px;
+  background:rgba(var(--c),.55);
+  transition:width .1s ease-out,border-radius .4s;will-change:width;
+}
+.cell.on .fill{border-radius:27px;background:rgba(var(--c),.6)}
+.cell.snapping .fill{transition:width .25s var(--ease),border-radius .4s}
+
+/* ── Value label inside pill ── */
+.val{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;color:rgba(255,255,255,.88);
+  letter-spacing:-1px;z-index:3;pointer-events:none;
+  text-shadow:0 1px 3px rgba(0,0,0,.25);
+  transition:font-size .4s var(--ease),color .2s,letter-spacing .3s;
+}
+.cell.on .val{font-size:38px;color:#fff;letter-spacing:-2px}
+
+/* ── Ticks ── */
+.ticks{
+  position:absolute;top:0;bottom:0;left:5%;right:5%;
+  display:flex;align-items:center;justify-content:space-between;
+  pointer-events:none;opacity:0;transition:opacity .4s;
+}
+.cell.on .ticks{opacity:1}
+.ticks b{display:block;width:1px;flex-shrink:0;background:rgba(255,255,255,.05);height:45%;border-radius:1px}
+.ticks b.m{height:60%;background:rgba(255,255,255,.1)}
+
+/* ── Now marker ── */
+.now-mark{
+  position:absolute;top:18%;bottom:18%;width:1.5px;
+  background:rgba(255,255,255,.2);border-radius:1px;
+  pointer-events:none;z-index:1;transform:translateX(-50%);
+  transition:left .3s,opacity .4s;
+}
+.cell.on .now-mark{background:rgba(255,255,255,.35)}
+.cell.dimmed .now-mark{opacity:0}
+
+/* ── Entrance animation ── */
+@keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.cell{animation:appear .5s ease both}
+.cell:nth-child(1){animation-delay:.05s}
+.cell:nth-child(3){animation-delay:.1s}
+.cell:nth-child(4){animation-delay:.15s}
+.cell:nth-child(6){animation-delay:.2s}
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="row" id="R">
+    <div class="cell" data-f="0"><div class="track"><div class="fill" id="f0"></div><span class="val" id="d0"></span><div class="ticks" id="t0"></div><div class="now-mark" id="n0"></div></div></div>
+    <span class="sep">:</span>
+    <div class="cell" data-f="1"><div class="track"><div class="fill" id="f1"></div><span class="val" id="d1"></span><div class="ticks" id="t1"></div><div class="now-mark" id="n1"></div></div></div>
+    <div class="cell" data-f="2"><div class="track"><div class="fill" id="f2"></div><span class="val" id="d2"></span><div class="ticks" id="t2"></div><div class="now-mark" id="n2"></div></div></div>
+    <span class="sep">/</span>
+    <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  /* ── Data ── */
+  var H=[],M=[],A=["Oca","\u015eub","Mar","Nis","May","Haz","Tem","A\u011fu","Eyl","Eki","Kas","Ara"],D=[];
+  var i;
+  for(i=0;i<=24;i++)H[i]=((i%24)<10?"0":"")+(i%24);
+  for(i=0;i<=12;i++)M[i]=((i%12)*5<10?"0":"")+((i%12)*5);
+  for(i=1;i<=31;i++)D[i-1]=""+i;
+
+  var now=new Date();
+  var curYear=now.getFullYear();
+  function daysIn(m){return new Date(curYear,m+1,0).getDate()}
+
+  /* ── Smart defaults ── */
+  var initH=now.getHours(),initMin=now.getMinutes();
+  var nextMin=Math.ceil((initMin+1)/5)*5;
+  if(nextMin>=60){initH=(initH+1)%24;nextMin=0}
+
+  var F=[H,M,A,D];
+  var MX=[24,12,11,daysIn(now.getMonth())-1];
+  var idx=[initH,nextMin/5,now.getMonth(),now.getDate()-1];
+  var MST=[2,1,1,3];
+
+  var DEAD=.02,DEADHI=.98,DINV=1/.96,PAD=.04,DWMS=150,VELTHR=.15;
+  var pnow=performance.now.bind(performance);
+
+  /* ── DOM-measured bounds (v3 approach) ── */
+  var R=document.getElementById("R");
+  function rowBounds(){
+    var r=R.getBoundingClientRect(),w=r.width*.86,pp=w*PAD;
+    drag.pL=r.left+r.width*.5-w*.5+pp;
+    drag.pI=1/(w-2*pp);
+  }
+  var bSid,bN,did=0;
+  function nextB(){
+    if(!drag||did!==bSid)return;
+    drag.ax=lx;drag.ai=idx[drag.fi];
+    rowBounds();
+    if(++bN<3)setTimeout(nextB,bN===1?140:160);
+  }
+
+  /* ── Lookups ── */
+  var PCT=new Array(4),FLX=new Array(4);
+  function buildLookup(fi){
+    var mx=MX[fi],p=new Array(mx+1),f=new Array(mx+1);
+    for(var j=0;j<=mx;j++){var r=j/mx;p[j]=(5+95*r)+"%";f[j]=(.5+1.3*r)+" 1 0px"}
+    PCT[fi]=p;FLX[fi]=f;
+  }
+  for(i=0;i<4;i++)buildLookup(i);
+
+  /* ── DOM ── */
+  var fl=new Array(4),cells=new Array(4),ds=new Array(4);
+  for(i=0;i<4;i++){
+    fl[i]=document.getElementById("f"+i);
+    ds[i]=document.getElementById("d"+i);
+    cells[i]=document.querySelector('[data-f="'+i+'"]');
+  }
+
+  /* ── Ticks ── */
+  var MAJ=[6,3,3,5],tickEls=new Array(4);
+  function buildTicks(fi){
+    var td=tickEls[fi],fg=document.createDocumentFragment(),mx=MX[fi];
+    td.textContent="";
+    for(var j=0;j<=mx;j++){var b=document.createElement("b");if(j%MAJ[fi]===0)b.className="m";fg.appendChild(b)}
+    td.appendChild(fg);
+  }
+  for(i=0;i<4;i++){tickEls[i]=document.getElementById("t"+i);buildTicks(i)}
+
+  /* ── Day sync ── */
+  var prevDayMax=MX[3];
+  function syncDayMax(){
+    var nm=daysIn(idx[2])-1;
+    if(nm===prevDayMax)return;
+    MX[3]=nm;prevDayMax=nm;
+    if(idx[3]>nm)idx[3]=nm;
+    buildLookup(3);buildTicks(3);apply(3);text(3);
+  }
+
+  /* ── Render ── */
+  function apply(fi){fl[fi].style.width=PCT[fi][idx[fi]];cells[fi].style.flex=FLX[fi][idx[fi]]}
+  function text(fi){ds[fi].textContent=F[fi][idx[fi]]}
+  for(i=0;i<4;i++){apply(i);text(i)}
+
+  /* ── Now markers ── */
+  var nowIdx=[now.getHours(),Math.floor(now.getMinutes()/5),now.getMonth(),now.getDate()-1];
+  for(i=0;i<4;i++){
+    var ni=nowIdx[i]>MX[i]?MX[i]:nowIdx[i];
+    document.getElementById("n"+i).style.left=PCT[i][ni];
+  }
+
+  /* ── State ── */
+  var drag=null,raf=0,lx=0,flx=-1;
+  var vx=[0,0,0],vt=[0,0,0],vi=0;
+
+  function cls(fi,on){
+    for(var j=0;j<4;j++){
+      var cl=cells[j].classList;
+      cl.toggle("on",on&&j===fi);
+      cl.toggle("dimmed",on&&j!==fi);
+    }
+    R.classList.toggle("expanded",on);
+    document.body.className=on?"glow-"+fi:"";
+  }
+
+  function gx(e){
+    var t=e.touches;
+    return t&&t.length?t[0].clientX+.5|0:e.clientX+.5|0;
+  }
+
+  function absIdx(x){
+    var t=(x-drag.pL)*drag.pI;
+    if(t<=0)return 0;
+    if(t>=1)return drag.mx;
+    if(t<DEAD)t=0;
+    else if(t>DEADHI)t=1;
+    else t=(t-DEAD)*DINV;
+    return t*drag.mx+.5|0;
+  }
+
+  function deltaIdx(x){
+    var rawD=(x-drag.ax)*drag.mx*drag.pI;
+    var steps=rawD>0?rawD+.5|0:rawD-.5|0;
+    var t=drag.ai+steps;
+    return t<0?0:t>drag.mx?drag.mx:t;
+  }
+
+  function down(e){
+    var tr=e.target.closest(".track");if(!tr)return;
+    e.preventDefault();
+    if(raf){cancelAnimationFrame(raf);raf=0}
+
+    var fi=+tr.parentNode.dataset.f,t0=pnow();
+    drag={fi:fi,mx:MX[fi],ms:MST[fi],ax:0,ai:0,dc:0,dt:t0,dv:-1,ld:0,sc:0,pL:0,pI:0};
+    rowBounds();
+    lx=gx(e);flx=lx;
+    idx[fi]=absIdx(lx);
+    drag.ax=lx;drag.ai=idx[fi];drag.dc=idx[fi];
+    vx[0]=vx[1]=vx[2]=lx;vt[0]=vt[1]=vt[2]=t0;vi=0;
+
+    cls(fi,true);apply(fi);text(fi);
+    bSid=++did;bN=0;setTimeout(nextB,120);
+  }
+
+  function move(e){
+    if(!drag)return;e.preventDefault();
+    lx=gx(e);
+    if(!raf)raf=requestAnimationFrame(frame);
+  }
+
+  function frame(){
+    raf=0;if(!drag)return;
+    var fi=drag.fi;
+
+    if(lx===flx){
+      if(drag.dv<0){
+        var sd=idx[fi]-drag.dc;
+        if(sd<=1&&sd>=-1&&pnow()-drag.dt>=DWMS)drag.dv=idx[fi];
+      }
+      return;
+    }
+    var dpx=lx-flx;
+    flx=lx;
+
+    var now2=pnow();
+    vi=(vi+1)%3;vx[vi]=lx;vt[vi]=now2;
+
+    var t=deltaIdx(lx),c=idx[fi];
+    var d=t-c,ms=drag.ms;
+    if(d>ms)d=ms;else if(d<-ms)d=-ms;
+
+    if(drag.ld===0&&(d===1||d===-1)&&dpx>-2&&dpx<2){
+      if(drag.sc===0){d=0;drag.sc=1}
+      else drag.sc=0;
+    }else drag.sc=0;
+    drag.ld=d;
+
+    if(d){c+=d;idx[fi]=c;apply(fi);text(fi)}
+
+    var df=c-drag.dc;
+    if(df>1||df<-1){drag.dc=c;drag.dt=now2}
+    else if(now2-drag.dt>=DWMS)drag.dv=c;
+  }
+
+  function up(){
+    if(!drag)return;
+    var fi=drag.fi,mx=drag.mx,c=idx[fi],f=c;
+
+    if(drag.dv>=0){
+      var dd=drag.dv-c;
+      if(dd<=1&&dd>=-1)f=drag.dv;
+    }else{
+      var oldest=(vi+1)%3,dt=vt[vi]-vt[oldest];
+      if(dt>16&&dt<300){
+        var dx=vx[vi]-vx[oldest],thr=dt*VELTHR;
+        if(dx>thr&&c<mx)f=c+1;
+        else if(dx<-thr&&c>0)f=c-1;
+      }
+    }
+
+    if(f!==c){
+      cells[fi].classList.add("snapping");
+      idx[fi]=f;apply(fi);text(fi);
+      setTimeout(function(){cells[fi].classList.remove("snapping")},280);
+    }
+
+    if(fi===2)syncDayMax();
+    cleanup();
+  }
+
+  function cancel(){
+    if(!drag)return;
+    var fi=drag.fi;
+    idx[fi]=drag.ai;
+    apply(fi);text(fi);
+    cleanup();
+  }
+
+  function cleanup(){
+    cls(0,false);
+    for(var j=0;j<4;j++)cells[j].style.flex=FLX[j][idx[j]];
+    if(raf){cancelAnimationFrame(raf);raf=0}
+    drag=null;
+  }
+
+  document.addEventListener("touchstart",down,{passive:false});
+  document.addEventListener("touchmove",move,{passive:false});
+  document.addEventListener("touchend",up);
+  document.addEventListener("touchcancel",cancel);
+  document.addEventListener("mousedown",down);
+  document.addEventListener("mousemove",move);
+  document.addEventListener("mouseup",up);
+})();
+</script>
+</body>
+</html>
