@@ -120,12 +120,14 @@ body::before{
 .cell:nth-child(5){animation-delay:.15s}
 .cell:nth-child(7){animation-delay:.2s}
 
-.picker{display:flex;flex-direction:column;align-items:center;width:100%}
+.picker{position:relative;display:flex;flex-direction:column;align-items:center;width:100%}
 
-/* ── Task input above pills ── */
+/* ── Task input above pills (absolute — no layout shift) ── */
 .task-input{
   display:none;
-  width:80%;max-width:360px;margin-bottom:8px;
+  position:absolute;bottom:calc(100% + 8px);
+  left:50%;transform:translateX(-50%);
+  width:80%;max-width:360px;
   background:none;border:none;outline:none;resize:none;
   font-family:'DM Sans',system-ui,sans-serif;
   font-size:20px;font-weight:500;color:rgba(255,255,255,.9);

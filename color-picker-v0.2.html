@@ -34,7 +34,7 @@ body::before{
 .cell[data-f="2"]{--c:69,212,138}
 .cell[data-f="3"]{--c:245,197,66}
 
-.picker{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+.picker{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
 
 /* ── Row ── */
 .row{
@@ -123,9 +123,11 @@ body::before{
 .row:nth-child(2) .cell:nth-child(1){animation-delay:.15s}
 .row:nth-child(2) .cell:nth-child(3){animation-delay:.2s}
 
-/* ── Task input above pills ── */
+/* ── Task input above pills (absolute — no layout shift) ── */
 .task-input{
   display:none;
+  position:absolute;bottom:calc(100% + 8px);
+  left:50%;transform:translateX(-50%);
   width:76%;max-width:320px;
   background:none;border:none;outline:none;resize:none;
   font-family:'DM Sans',system-ui,sans-serif;
