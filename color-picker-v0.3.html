@@ -385,21 +385,21 @@ body::before{
     if(e.key==="Enter"){e.preventDefault();taskIn.value="";taskIn.style.height="auto";taskIn.blur()}
   });
 
-  /* ── Keyboard: keep scene above virtual keyboard ── */
+  /* ── Keyboard: keep content just above virtual keyboard ── */
   var kbOff=0;
   function syncKB(){
     if(!window.visualViewport)return;
     var off=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
     if(off>0)kbOff=off;
-    scene.style.bottom=kbOff+"px";
-    scene.style.top="auto";
+    scene.style.justifyContent="flex-end";
+    scene.style.paddingBottom=(kbOff+20)+"px";
   }
   if(window.visualViewport){
     window.visualViewport.addEventListener("resize",syncKB);
     window.visualViewport.addEventListener("scroll",syncKB);
   }
   taskIn.addEventListener("blur",function(){
-    kbOff=0;scene.style.bottom="";scene.style.top="";
+    kbOff=0;scene.style.justifyContent="";scene.style.paddingBottom="";
   });
 })();
 </script>
