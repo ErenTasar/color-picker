@@ -34,37 +34,34 @@ body::before{
 .cell[data-f="2"]{--c:69,212,138}
 .cell[data-f="3"]{--c:245,197,66}
 
-.picker{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
-
 /* ── Row ── */
 .row{
   display:flex;align-items:center;
-  width:76%;max-width:320px;
-  gap:8px;overflow:hidden;
+  width:80%;max-width:360px;
+  gap:6px;overflow:hidden;
   transition:width .4s var(--ease),max-width .4s var(--ease),gap .4s;
 }
-.row.expanded{width:calc(100% - 28px);max-width:460px;gap:0}
+.row.expanded{width:calc(100% - 24px);max-width:460px;gap:0}
 
 /* ── Separator ── */
 .sep{
-  flex:0 0 auto;font-size:30px;font-weight:200;
-  color:rgba(255,255,255,.1);line-height:48px;margin:0 1px;
+  flex:0 0 auto;font-size:24px;font-weight:300;
+  color:rgba(255,255,255,.14);line-height:48px;margin:0 2px;
   transition:opacity .3s,flex .4s var(--ease),font-size .4s,margin .4s;
 }
 .row.expanded .sep{flex:0 0 0;opacity:0;font-size:0;margin:0}
 
 /* ── Cell ── */
 .cell{
-  flex:1 1 0;min-width:0;overflow:hidden;border-radius:25px;
-  transition:flex .4s var(--ease),opacity .3s,border-radius .4s;
+  flex:1 1 0;min-width:0;overflow:hidden;border-radius:24px;
+  transition:flex .4s var(--ease),opacity .2s,border-radius .4s;
 }
 .cell.on{border-radius:40px}
 .cell.dimmed{flex:0 0 0 !important;opacity:0;pointer-events:none}
-.cell.faded{opacity:.3;pointer-events:none}
 
 /* ── Track ── */
 .track{
-  width:100%;position:relative;height:50px;border-radius:25px;
+  width:100%;position:relative;height:48px;border-radius:24px;
   cursor:grab;
   background:rgba(var(--c),.1);border:1px solid rgba(var(--c),.06);
   transition:height .4s var(--ease),border-radius .4s,box-shadow .4s,border-color .3s;
@@ -78,7 +75,7 @@ body::before{
 
 /* ── Fill ── */
 .fill{
-  position:absolute;top:0;bottom:0;left:0;border-radius:25px;
+  position:absolute;top:0;bottom:0;left:0;border-radius:24px;
   background:rgba(var(--c),.55);
   transition:width .1s ease-out,border-radius .4s;will-change:width;
 }
@@ -88,7 +85,7 @@ body::before{
 /* ── Value label inside pill ── */
 .val{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-size:26px;font-weight:700;color:rgba(255,255,255,.88);
+  font-size:24px;font-weight:700;color:rgba(255,255,255,.88);
   letter-spacing:-1px;z-index:3;pointer-events:none;
   text-shadow:0 1px 3px rgba(0,0,0,.25);
   transition:font-size .4s var(--ease),color .2s,letter-spacing .3s,text-shadow .4s;
@@ -118,25 +115,21 @@ body::before{
 /* ── Entrance animation ── */
 @keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .cell{animation:appear .5s ease both}
-.row:nth-child(1) .cell:nth-child(1){animation-delay:.05s}
-.row:nth-child(1) .cell:nth-child(3){animation-delay:.1s}
-.row:nth-child(2) .cell:nth-child(1){animation-delay:.15s}
-.row:nth-child(2) .cell:nth-child(3){animation-delay:.2s}
+.cell:nth-child(1){animation-delay:.05s}
+.cell:nth-child(3){animation-delay:.1s}
+.cell:nth-child(4){animation-delay:.15s}
+.cell:nth-child(6){animation-delay:.2s}
 </style>
 </head>
 <body>
 <div class="scene">
-  <div class="picker">
-    <div class="row" id="R0">
-      <div class="cell" data-f="0"><div class="track"><div class="fill" id="f0"></div><span class="val" id="d0"></span><div class="ticks" id="t0"></div><div class="now-mark" id="n0"></div></div></div>
-      <span class="sep">:</span>
-      <div class="cell" data-f="1"><div class="track"><div class="fill" id="f1"></div><span class="val" id="d1"></span><div class="ticks" id="t1"></div><div class="now-mark" id="n1"></div></div></div>
-    </div>
-    <div class="row" id="R1">
-      <div class="cell" data-f="2"><div class="track"><div class="fill" id="f2"></div><span class="val" id="d2"></span><div class="ticks" id="t2"></div><div class="now-mark" id="n2"></div></div></div>
-      <span class="sep">/</span>
-      <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
-    </div>
+  <div class="row" id="R">
+    <div class="cell" data-f="0"><div class="track"><div class="fill" id="f0"></div><span class="val" id="d0"></span><div class="ticks" id="t0"></div><div class="now-mark" id="n0"></div></div></div>
+    <span class="sep">:</span>
+    <div class="cell" data-f="1"><div class="track"><div class="fill" id="f1"></div><span class="val" id="d1"></span><div class="ticks" id="t1"></div><div class="now-mark" id="n1"></div></div></div>
+    <div class="cell" data-f="2"><div class="track"><div class="fill" id="f2"></div><span class="val" id="d2"></span><div class="ticks" id="t2"></div><div class="now-mark" id="n2"></div></div></div>
+    <span class="sep">/</span>
+    <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
   </div>
 </div>
 <script>
@@ -164,12 +157,11 @@ body::before{
 
   var DEAD=.02,DEADHI=.98,DINV=1/.96,PAD=.04,DWMS=150,VELTHR=.15;
   var pnow=performance.now.bind(performance);
-  var ROW=[0,0,1,1];
 
   /* ── DOM-measured bounds (v3 approach) ── */
-  var rowEls=[document.getElementById("R0"),document.getElementById("R1")];
+  var R=document.getElementById("R");
   function rowBounds(){
-    var r=rowEls[ROW[drag.fi]].getBoundingClientRect(),w=r.width*.86,pp=w*PAD;
+    var r=R.getBoundingClientRect(),w=r.width*.86,pp=w*PAD;
     drag.pL=r.left+r.width*.5-w*.5+pp;
     drag.pI=1/(w-2*pp);
   }
@@ -185,7 +177,7 @@ body::before{
   var PCT=new Array(4),FLX=new Array(4);
   function buildLookup(fi){
     var mx=MX[fi],p=new Array(mx+1),f=new Array(mx+1);
-    for(var j=0;j<=mx;j++){var r=j/mx;p[j]=(5+95*r)+"%";f[j]=(.85+.3*r)+" 1 0px"}
+    for(var j=0;j<=mx;j++){var r=j/mx;p[j]=(5+95*r)+"%";f[j]=(.5+1.3*r)+" 1 0px"}
     PCT[fi]=p;FLX[fi]=f;
   }
   for(i=0;i<4;i++)buildLookup(i);
@@ -235,25 +227,13 @@ body::before{
   var vx=[0,0,0],vt=[0,0,0],vi=0;
 
   function cls(fi,on){
-    var j,myRow;
-    if(on){
-      myRow=ROW[fi];
-      for(j=0;j<4;j++){
-        var cl=cells[j].classList;
-        cl.remove("on","dimmed","faded");
-        if(j===fi)cl.add("on");
-        else if(ROW[j]===myRow)cl.add("dimmed");
-        else cl.add("faded");
-      }
-      rowEls[myRow].classList.add("expanded");
-      rowEls[1-myRow].classList.remove("expanded");
-      document.body.className="glow-"+fi;
-    }else{
-      for(j=0;j<4;j++)cells[j].classList.remove("on","dimmed","faded");
-      rowEls[0].classList.remove("expanded");
-      rowEls[1].classList.remove("expanded");
-      document.body.className="";
+    for(var j=0;j<4;j++){
+      var cl=cells[j].classList;
+      cl.toggle("on",on&&j===fi);
+      cl.toggle("dimmed",on&&j!==fi);
     }
+    R.classList.toggle("expanded",on);
+    document.body.className=on?"glow-"+fi:"";
   }
 
   function gx(e){
@@ -361,14 +341,6 @@ body::before{
     cleanup();
   }
 
-  function cancel(){
-    if(!drag)return;
-    var fi=drag.fi;
-    idx[fi]=drag.ai;
-    apply(fi);text(fi);
-    cleanup();
-  }
-
   function cleanup(){
     cls(0,false);
     for(var j=0;j<4;j++)cells[j].style.flex=FLX[j][idx[j]];
@@ -379,7 +351,7 @@ body::before{
   document.addEventListener("touchstart",down,{passive:false});
   document.addEventListener("touchmove",move,{passive:false});
   document.addEventListener("touchend",up);
-  document.addEventListener("touchcancel",cancel);
+  document.addEventListener("touchcancel",up);
   document.addEventListener("mousedown",down);
   document.addEventListener("mousemove",move);
   document.addEventListener("mouseup",up);
