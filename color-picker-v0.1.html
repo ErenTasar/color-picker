@@ -271,7 +271,7 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
   function closeComp(){
     isOpen=false;
     comp.classList.remove("open");
-    comp.style.bottom="";
+    comp.style.bottom="";kbOff=0;
     taskIn.value="";taskIn.style.height="auto";taskIn.blur();
     pillRelease();
     setTimeout(function(){fab.classList.remove("hidden")},300);
@@ -443,10 +443,12 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
   document.addEventListener("mouseup",up);
 
   /* ── Keyboard: keep composer above virtual keyboard ── */
+  var kbOff=0;
   function syncKB(){
     if(!window.visualViewport||!isOpen)return;
     var off=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
-    comp.style.bottom=Math.max(0,off)+"px";
+    if(off>0)kbOff=off;
+    comp.style.bottom=Math.max(0,kbOff)+"px";
   }
   if(window.visualViewport){
     window.visualViewport.addEventListener("resize",syncKB);
