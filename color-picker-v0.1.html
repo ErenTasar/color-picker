@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Task Picker v0</title>
+<title>Task Picker v0.1</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,200;500;700&display=swap" rel="stylesheet">
 <style>
 :root{--ease:cubic-bezier(.32,.72,0,1)}
@@ -46,29 +46,28 @@ body::before{
 /* ── Composer top row: pills + input ── */
 .comp-row{display:flex;align-items:center;gap:12px}
 
-/* ── Pill grid (2 rows) ── */
-.pill-grid{
-  display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:1fr 1fr;
-  gap:6px 4px;flex:0 0 auto;width:52%;
+/* ── Pill row (single line) ── */
+.pill-row{
+  display:flex;align-items:center;gap:3px;
+  flex:0 0 auto;width:58%;
   touch-action:none;
 }
-.pill-grid .sep{
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:300;color:rgba(255,255,255,.12);
+.pill-row .sep{
+  flex:0 0 auto;
+  font-size:16px;font-weight:300;color:rgba(255,255,255,.12);
+  margin:0 1px;
 }
 
-/* ── Cells in grid ── */
-.cell{min-width:0;overflow:hidden;border-radius:18px;touch-action:none}
-.cell[data-f="0"]{--c:94,181,240;grid-row:1;grid-column:1}
-.cell[data-f="1"]{--c:240,112,152;grid-row:1;grid-column:3}
-.cell[data-f="2"]{--c:69,212,138;grid-row:2;grid-column:1}
-.cell[data-f="3"]{--c:245,197,66;grid-row:2;grid-column:3}
-.sep-colon{grid-row:1;grid-column:2}
-.sep-slash{grid-row:2;grid-column:2}
+/* ── Cells ── */
+.cell{flex:1 1 0;min-width:0;overflow:hidden;border-radius:16px;touch-action:none}
+.cell[data-f="0"]{--c:94,181,240}
+.cell[data-f="1"]{--c:240,112,152}
+.cell[data-f="2"]{--c:69,212,138}
+.cell[data-f="3"]{--c:245,197,66}
 
 /* ── Track ── */
 .track{
-  width:100%;position:relative;height:38px;border-radius:18px;
+  width:100%;position:relative;height:34px;border-radius:16px;
   cursor:grab;touch-action:none;
   background:rgba(var(--c),.1);border:1px solid rgba(var(--c),.06);
   transition:box-shadow .3s,border-color .3s;
@@ -81,7 +80,7 @@ body::before{
 
 /* ── Fill ── */
 .fill{
-  position:absolute;top:0;bottom:0;left:0;border-radius:18px;
+  position:absolute;top:0;bottom:0;left:0;border-radius:16px;
   background:rgba(var(--c),.55);
   transition:width .1s ease-out;will-change:width;
 }
@@ -91,7 +90,7 @@ body::before{
 /* ── Value label ── */
 .val{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:700;color:rgba(255,255,255,.88);
+  font-size:15px;font-weight:700;color:rgba(255,255,255,.88);
   letter-spacing:-.5px;z-index:3;pointer-events:none;
   text-shadow:0 1px 2px rgba(0,0,0,.25);
   transition:color .2s;
@@ -146,12 +145,12 @@ body::before{
 
 <div class="composer" id="comp">
   <div class="comp-row">
-    <div class="pill-grid" id="PG">
+    <div class="pill-row" id="PR">
       <div class="cell" data-f="0"><div class="track"><div class="fill" id="f0"></div><span class="val" id="d0"></span><div class="ticks" id="t0"></div><div class="now-mark" id="n0"></div></div></div>
-      <div class="sep sep-colon">:</div>
+      <span class="sep">:</span>
       <div class="cell" data-f="1"><div class="track"><div class="fill" id="f1"></div><span class="val" id="d1"></span><div class="ticks" id="t1"></div><div class="now-mark" id="n1"></div></div></div>
       <div class="cell" data-f="2"><div class="track"><div class="fill" id="f2"></div><span class="val" id="d2"></span><div class="ticks" id="t2"></div><div class="now-mark" id="n2"></div></div></div>
-      <div class="sep sep-slash">/</div>
+      <span class="sep">/</span>
       <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
     </div>
     <input class="task-input" id="taskIn" type="text" placeholder="Görev adı..." autocomplete="off" autocorrect="off" spellcheck="false">
