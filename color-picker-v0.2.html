@@ -401,20 +401,21 @@ body::before{
   });
 
   /* ── Keyboard: keep content just above virtual keyboard ── */
-  var kbOff=0;
   function syncKB(){
     if(!window.visualViewport)return;
     var off=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
-    if(off>0)kbOff=off;
-    scene.style.justifyContent="flex-end";
-    scene.style.paddingBottom=(kbOff+20)+"px";
+    if(off>50)scene.style.paddingBottom=(off+20)+"px";
   }
   if(window.visualViewport){
     window.visualViewport.addEventListener("resize",syncKB);
     window.visualViewport.addEventListener("scroll",syncKB);
   }
+  taskIn.addEventListener("focus",function(){
+    scene.style.justifyContent="flex-end";
+    scene.style.paddingBottom="280px";/* safe default until syncKB fires */
+  });
   taskIn.addEventListener("blur",function(){
-    kbOff=0;scene.style.justifyContent="";scene.style.paddingBottom="";
+    scene.style.justifyContent="";scene.style.paddingBottom="";
   });
 })();
 </script>
