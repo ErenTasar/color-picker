@@ -166,15 +166,19 @@ body::before{
   var pnow=performance.now.bind(performance);
   var ROW=[0,0,1,1];
 
-  /* ── Pre-computed expanded bounds ── */
-  var ePI,ePL;
-  function calcBounds(){
-    var sw=window.innerWidth||375,ew=Math.min(sw-28,460),ew97=ew*.97,pp=ew97*PAD;
-    ePL=(sw-ew)*.5+(ew-ew97)*.5+pp;
-    ePI=1/(ew97-2*pp);
+  /* ── DOM-measured bounds (v3 approach) ── */
+  function rowBounds(){
+    var r=rowEls[ROW[drag.fi]].getBoundingClientRect(),w=r.width*.86,pp=w*PAD;
+    drag.pL=r.left+r.width*.5-w*.5+pp;
+    drag.pI=1/(w-2*pp);
   }
-  calcBounds();
-  window.addEventListener("resize",calcBounds);
+  var bSid,bN,did=0;
+  function nextB(){
+    if(!drag||did!==bSid)return;
+    drag.ax=lx;drag.ai=idx[drag.fi];
+    rowBounds();
+    if(++bN<3)setTimeout(nextB,bN===1?140:160);
+  }
 
   /* ── Lookups ── */
   var PCT=new Array(4),FLX=new Array(4);
@@ -257,21 +261,21 @@ body::before{
     return t&&t.length?t[0].clientX+.5|0:e.clientX+.5|0;
   }
 
-  function absIdx(mx,x){
-    var t=(x-ePL)*ePI;
+  function absIdx(x){
+    var t=(x-drag.pL)*drag.pI;
     if(t<=0)return 0;
-    if(t>=1)return mx;
+    if(t>=1)return drag.mx;
     if(t<DEAD)t=0;
     else if(t>DEADHI)t=1;
     else t=(t-DEAD)*DINV;
-    return t*mx+.5|0;
+    return t*drag.mx+.5|0;
   }
 
-  function deltaIdx(mx,x,ax,ai){
-    var rawD=(x-ax)*mx*ePI;
+  function deltaIdx(x){
+    var rawD=(x-drag.ax)*drag.mx*drag.pI;
     var steps=rawD>0?rawD+.5|0:rawD-.5|0;
-    var t=ai+steps;
-    return t<0?0:t>mx?mx:t;
+    var t=drag.ai+steps;
+    return t<0?0:t>drag.mx?drag.mx:t;
   }
 
   function down(e){
@@ -279,16 +283,16 @@ body::before{
     e.preventDefault();
     if(raf){cancelAnimationFrame(raf);raf=0}
 
-    var fi=+tr.parentNode.dataset.f,t0=pnow(),mx=MX[fi];
+    var fi=+tr.parentNode.dataset.f,t0=pnow();
+    drag={fi:fi,mx:MX[fi],ms:MST[fi],ax:0,ai:0,dc:0,dt:t0,dv:-1,ld:0,sc:0,pL:0,pI:0};
+    rowBounds();
     lx=gx(e);flx=lx;
-
-    var ni=absIdx(mx,lx);
-    idx[fi]=ni;
-
-    drag={fi:fi,mx:mx,ms:MST[fi],ax:lx,ai:ni,dc:ni,dt:t0,dv:-1,ld:0,sc:0};
+    idx[fi]=absIdx(lx);
+    drag.ax=lx;drag.ai=idx[fi];drag.dc=idx[fi];
     vx[0]=vx[1]=vx[2]=lx;vt[0]=vt[1]=vt[2]=t0;vi=0;
 
     cls(fi,true);apply(fi);text(fi);
+    bSid=++did;bN=0;setTimeout(nextB,120);
   }
 
   function move(e){
@@ -311,10 +315,10 @@ body::before{
     var dpx=lx-flx;
     flx=lx;
 
-    var now2=pnow(),mx=drag.mx;
+    var now2=pnow();
     vi=(vi+1)%3;vx[vi]=lx;vt[vi]=now2;
 
-    var t=deltaIdx(mx,lx,drag.ax,drag.ai),c=idx[fi];
+    var t=deltaIdx(lx),c=idx[fi];
     var d=t-c,ms=drag.ms;
     if(d>ms)d=ms;else if(d<-ms)d=-ms;
 
