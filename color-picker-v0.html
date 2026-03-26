@@ -18,8 +18,16 @@ body::before{
     radial-gradient(ellipse 35% 35% at 55% 55%,rgba(15,25,45,.25) 0%,transparent 55%);
   pointer-events:none;z-index:0;
 }
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  opacity:0;transition:opacity .5s;
+}
+body.glow-0::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 80%,rgba(94,181,240,.07) 0%,transparent 70%)}
+body.glow-1::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 80%,rgba(240,112,152,.07) 0%,transparent 70%)}
+body.glow-2::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 80%,rgba(69,212,138,.07) 0%,transparent 70%)}
+body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 80%,rgba(245,197,66,.07) 0%,transparent 70%)}
 
-/* ── FAB (+ button) ── */
+/* ── FAB ── */
 .fab{
   position:fixed;bottom:48px;left:50%;transform:translateX(-50%);
   width:56px;height:56px;border-radius:50%;border:none;
@@ -31,11 +39,11 @@ body::before{
 .fab:active{background:rgba(255,255,255,.18);transform:translateX(-50%) scale(.92)}
 .fab.hidden{opacity:0;pointer-events:none;transform:translateX(-50%) scale(.7)}
 
-/* ── Composer panel ── */
+/* ── Composer ── */
 .composer{
   position:fixed;bottom:0;left:0;right:0;z-index:5;
   display:flex;flex-direction:column;gap:12px;
-  padding:16px 16px 24px;
+  padding:14px 12px 24px;
   background:rgba(12,12,18,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-top:1px solid rgba(255,255,255,.06);
   transform:translateY(100%);opacity:0;
@@ -43,60 +51,75 @@ body::before{
 }
 .composer.open{transform:translateY(0);opacity:1}
 
-/* ── Composer top row: pills + input ── */
-.comp-row{display:flex;align-items:center;gap:12px}
-
-/* ── Pill grid (2 rows) ── */
-.pill-grid{
-  display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:1fr 1fr;
-  gap:6px 4px;flex:0 0 auto;width:52%;
-  touch-action:none;
+/* ── Top area: pills left, input right ── */
+.comp-top{display:flex;align-items:center;gap:10px}
+.pill-area{
+  flex:0 0 auto;display:flex;flex-direction:column;gap:6px;
+  width:52%;
+  transition:width .4s var(--ease);
 }
-.pill-grid .sep{
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:300;color:rgba(255,255,255,.12);
-}
+.pill-area.expanded{width:100%}
 
-/* ── Cells in grid ── */
-.cell{min-width:0;overflow:hidden;border-radius:18px;touch-action:none}
-.cell[data-f="0"]{--c:94,181,240;grid-row:1;grid-column:1}
-.cell[data-f="1"]{--c:240,112,152;grid-row:1;grid-column:3}
-.cell[data-f="2"]{--c:69,212,138;grid-row:2;grid-column:1}
-.cell[data-f="3"]{--c:245,197,66;grid-row:2;grid-column:3}
-.sep-colon{grid-row:1;grid-column:2}
-.sep-slash{grid-row:2;grid-column:2}
+/* ── Rows inside pill area (v4-style) ── */
+.row{
+  display:flex;align-items:center;gap:4px;overflow:hidden;
+  transition:gap .4s var(--ease);
+}
+.row.exp{gap:0}
+.sep{
+  flex:0 0 auto;font-size:16px;font-weight:300;
+  color:rgba(255,255,255,.12);margin:0 1px;
+  transition:opacity .3s,flex .4s var(--ease),font-size .4s,margin .4s;
+}
+.row.exp .sep{flex:0 0 0;opacity:0;font-size:0;margin:0}
+
+/* ── Color themes ── */
+.cell[data-f="0"]{--c:94,181,240}
+.cell[data-f="1"]{--c:240,112,152}
+.cell[data-f="2"]{--c:69,212,138}
+.cell[data-f="3"]{--c:245,197,66}
+
+/* ── Cell ── */
+.cell{
+  flex:1 1 0;min-width:0;overflow:hidden;border-radius:20px;touch-action:none;
+  transition:flex .4s var(--ease),opacity .3s,border-radius .4s;
+}
+.cell.on{border-radius:24px}
+.cell.dimmed{flex:0 0 0 !important;opacity:0;pointer-events:none}
+.cell.faded{opacity:.25;pointer-events:none}
 
 /* ── Track ── */
 .track{
-  width:100%;position:relative;height:38px;border-radius:18px;
+  width:100%;position:relative;height:40px;border-radius:20px;
   cursor:grab;touch-action:none;
   background:rgba(var(--c),.1);border:1px solid rgba(var(--c),.06);
-  transition:box-shadow .3s,border-color .3s;
+  transition:height .4s var(--ease),border-radius .4s,box-shadow .4s,border-color .3s;
 }
 .cell.on .track{
-  cursor:grabbing;
-  background:rgba(var(--c),.08);border-color:rgba(var(--c),.12);
-  box-shadow:0 0 20px rgba(var(--c),.12),inset 0 0 8px rgba(var(--c),.04);
+  height:52px;border-radius:24px;cursor:grabbing;
+  background:rgba(var(--c),.06);border-color:rgba(var(--c),.1);
+  box-shadow:0 0 28px rgba(var(--c),.15),inset 0 0 10px rgba(var(--c),.04);
 }
+.cell.dimmed .track{height:0;border-width:0}
 
 /* ── Fill ── */
 .fill{
-  position:absolute;top:0;bottom:0;left:0;border-radius:18px;
+  position:absolute;top:0;bottom:0;left:0;border-radius:20px;
   background:rgba(var(--c),.55);
-  transition:width .1s ease-out;will-change:width;
+  transition:width .1s ease-out,border-radius .4s;will-change:width;
 }
-.cell.on .fill{background:rgba(var(--c),.65)}
-.cell.snapping .fill{transition:width .25s var(--ease)}
+.cell.on .fill{border-radius:24px;background:rgba(var(--c),.65)}
+.cell.snapping .fill{transition:width .25s var(--ease),border-radius .4s}
 
 /* ── Value label ── */
 .val{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:700;color:rgba(255,255,255,.88);
+  font-size:19px;font-weight:700;color:rgba(255,255,255,.88);
   letter-spacing:-.5px;z-index:3;pointer-events:none;
   text-shadow:0 1px 2px rgba(0,0,0,.25);
-  transition:color .2s;
+  transition:font-size .4s var(--ease),color .2s,letter-spacing .3s;
 }
-.cell.on .val{color:#fff}
+.cell.on .val{font-size:32px;color:#fff;letter-spacing:-2px}
 
 /* ── Ticks ── */
 .ticks{
@@ -104,29 +127,32 @@ body::before{
   display:flex;align-items:center;justify-content:space-between;
   pointer-events:none;opacity:0;transition:opacity .3s;
 }
-.cell.on .ticks{opacity:.6}
-.ticks b{display:block;width:1px;flex-shrink:0;background:rgba(255,255,255,.06);height:40%;border-radius:1px}
+.cell.on .ticks{opacity:.7}
+.ticks b{display:block;width:1px;flex-shrink:0;background:rgba(255,255,255,.05);height:40%;border-radius:1px}
 .ticks b.m{height:55%;background:rgba(255,255,255,.1)}
 
 /* ── Now marker ── */
 .now-mark{
-  position:absolute;top:18%;bottom:18%;width:1.5px;
-  background:rgba(255,255,255,.2);border-radius:1px;
+  position:absolute;top:15%;bottom:15%;width:1.5px;
+  background:rgba(255,255,255,.22);border-radius:1px;
   pointer-events:none;z-index:1;transform:translateX(-50%);
-  transition:left .3s;
+  transition:left .3s,opacity .4s;
 }
-.cell.on .now-mark{background:rgba(255,255,255,.35)}
+.cell.on .now-mark{background:rgba(255,255,255,.4)}
+.cell.dimmed .now-mark{opacity:0}
 
 /* ── Task input ── */
 .task-input{
-  flex:1;min-width:0;
+  flex:1;min-width:0;align-self:center;
   background:none;border:none;outline:none;
   font-family:'DM Sans',system-ui,sans-serif;
   font-size:20px;font-weight:500;color:rgba(255,255,255,.9);
   padding:0 4px;
   caret-color:rgba(255,255,255,.5);
+  transition:opacity .3s,flex .3s;
 }
 .task-input::placeholder{color:rgba(255,255,255,.2);font-weight:300}
+.task-input.hidden{opacity:0;flex:0 0 0;overflow:hidden;pointer-events:none}
 
 /* ── Action row ── */
 .comp-actions{display:flex;justify-content:flex-end;gap:12px}
@@ -145,14 +171,18 @@ body::before{
 <button class="fab" id="fab">+</button>
 
 <div class="composer" id="comp">
-  <div class="comp-row">
-    <div class="pill-grid" id="PG">
-      <div class="cell" data-f="0"><div class="track"><div class="fill" id="f0"></div><span class="val" id="d0"></span><div class="ticks" id="t0"></div><div class="now-mark" id="n0"></div></div></div>
-      <div class="sep sep-colon">:</div>
-      <div class="cell" data-f="1"><div class="track"><div class="fill" id="f1"></div><span class="val" id="d1"></span><div class="ticks" id="t1"></div><div class="now-mark" id="n1"></div></div></div>
-      <div class="cell" data-f="2"><div class="track"><div class="fill" id="f2"></div><span class="val" id="d2"></span><div class="ticks" id="t2"></div><div class="now-mark" id="n2"></div></div></div>
-      <div class="sep sep-slash">/</div>
-      <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
+  <div class="comp-top">
+    <div class="pill-area" id="PA">
+      <div class="row" id="R0">
+        <div class="cell" data-f="0"><div class="track"><div class="fill" id="f0"></div><span class="val" id="d0"></span><div class="ticks" id="t0"></div><div class="now-mark" id="n0"></div></div></div>
+        <span class="sep">:</span>
+        <div class="cell" data-f="1"><div class="track"><div class="fill" id="f1"></div><span class="val" id="d1"></span><div class="ticks" id="t1"></div><div class="now-mark" id="n1"></div></div></div>
+      </div>
+      <div class="row" id="R1">
+        <div class="cell" data-f="2"><div class="track"><div class="fill" id="f2"></div><span class="val" id="d2"></span><div class="ticks" id="t2"></div><div class="now-mark" id="n2"></div></div></div>
+        <span class="sep">/</span>
+        <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
+      </div>
     </div>
     <input class="task-input" id="taskIn" type="text" placeholder="Görev adı..." autocomplete="off" autocorrect="off" spellcheck="false">
   </div>
@@ -164,15 +194,13 @@ body::before{
 
 <script>
 (function(){
-  /* ── Data ── */
   var H=[],M=[],A=["Oca","\u015eub","Mar","Nis","May","Haz","Tem","A\u011fu","Eyl","Eki","Kas","Ara"],D=[];
   var i;
   for(i=0;i<=24;i++)H[i]=((i%24)<10?"0":"")+(i%24);
   for(i=0;i<=12;i++)M[i]=((i%12)*5<10?"0":"")+((i%12)*5);
   for(i=1;i<=31;i++)D[i-1]=""+i;
 
-  var now=new Date();
-  var curYear=now.getFullYear();
+  var now=new Date(),curYear=now.getFullYear();
   function daysIn(m){return new Date(curYear,m+1,0).getDate()}
 
   var initH=now.getHours(),initMin=now.getMinutes();
@@ -183,13 +211,16 @@ body::before{
   var MX=[24,12,11,daysIn(now.getMonth())-1];
   var idx=[initH,nextMin/5,now.getMonth(),now.getDate()-1];
   var MST=[2,1,1,3];
+  var ROW=[0,0,1,1];
 
   var DEAD=.02,DEADHI=.98,DINV=1/.96,PAD=.04,DWMS=150,VELTHR=.15;
   var pnow=performance.now.bind(performance);
 
   /* ── DOM ── */
   var fl=new Array(4),cells=new Array(4),ds=new Array(4);
-  var PG=document.getElementById("PG");
+  var rowEls=[document.getElementById("R0"),document.getElementById("R1")];
+  var PA=document.getElementById("PA");
+  var taskIn=document.getElementById("taskIn");
   for(i=0;i<4;i++){
     fl[i]=document.getElementById("f"+i);
     ds[i]=document.getElementById("d"+i);
@@ -207,7 +238,7 @@ body::before{
   for(i=0;i<4;i++){tickEls[i]=document.getElementById("t"+i);buildTicks(i)}
 
   /* ── Lookups ── */
-  var PCT=new Array(4),FLX=new Array(4);
+  var PCT=new Array(4);
   function buildLookup(fi){
     var mx=MX[fi],p=new Array(mx+1);
     for(var j=0;j<=mx;j++)p[j]=(5+95*(j/mx))+"%";
@@ -237,31 +268,29 @@ body::before{
     document.getElementById("n"+i).style.left=PCT[i][ni];
   }
 
-  /* ── Composer open/close ── */
-  var fab=document.getElementById("fab"),comp=document.getElementById("comp"),taskIn=document.getElementById("taskIn");
+  /* ── Composer ── */
+  var fab=document.getElementById("fab"),comp=document.getElementById("comp");
   var isOpen=false;
 
   function openComp(){
     isOpen=true;
     fab.classList.add("hidden");
     comp.classList.add("open");
-    /* Reset to current time */
-    var n2=new Date();
-    var h2=n2.getHours(),m2=n2.getMinutes();
+    var n2=new Date(),h2=n2.getHours(),m2=n2.getMinutes();
     var nm2=Math.ceil((m2+1)/5)*5;
     if(nm2>=60){h2=(h2+1)%24;nm2=0}
     idx[0]=h2;idx[1]=nm2/5;idx[2]=n2.getMonth();idx[3]=n2.getDate()-1;
     MX[3]=daysIn(idx[2])-1;prevDayMax=MX[3];
     buildLookup(3);buildTicks(3);
     for(var j=0;j<4;j++){apply(j);text(j)}
-    setTimeout(function(){taskIn.focus()},400);
+    taskIn.focus();
   }
 
   function closeComp(){
     isOpen=false;
     comp.classList.remove("open");
     taskIn.value="";taskIn.blur();
-    for(var j=0;j<4;j++)cells[j].classList.remove("on");
+    pillRelease();
     setTimeout(function(){fab.classList.remove("hidden")},300);
   }
 
@@ -269,12 +298,43 @@ body::before{
   document.getElementById("btnX").addEventListener("click",closeComp);
   document.getElementById("btnS").addEventListener("click",closeComp);
 
-  /* ── Bounds: measure pill-grid ── */
-  function cellBounds(fi){
-    var el=cells[fi].querySelector(".track");
-    var r=el.getBoundingClientRect(),w=r.width,pp=w*PAD;
-    drag.pL=r.left+pp;
+  /* ── DOM-measured bounds + re-anchor ── */
+  function rowBounds(){
+    var r=rowEls[ROW[drag.fi]].getBoundingClientRect(),w=r.width*.86,pp=w*PAD;
+    drag.pL=r.left+r.width*.5-w*.5+pp;
     drag.pI=1/(w-2*pp);
+  }
+  var bSid,bN,did=0;
+  function nextB(){
+    if(!drag||did!==bSid)return;
+    drag.ax=lx;drag.ai=idx[drag.fi];
+    rowBounds();
+    if(++bN<3)setTimeout(nextB,bN===1?140:160);
+  }
+
+  /* ── Pill expand/collapse (v4-style) ── */
+  function pillExpand(fi){
+    var myRow=ROW[fi];
+    for(var j=0;j<4;j++){
+      var cl=cells[j].classList;
+      cl.remove("on","dimmed","faded");
+      if(j===fi)cl.add("on");
+      else if(ROW[j]===myRow)cl.add("dimmed");
+      else cl.add("faded");
+    }
+    rowEls[myRow].classList.add("exp");
+    rowEls[1-myRow].classList.remove("exp");
+    PA.classList.add("expanded");
+    taskIn.classList.add("hidden");
+    document.body.className="glow-"+fi;
+  }
+  function pillRelease(){
+    for(var j=0;j<4;j++)cells[j].classList.remove("on","dimmed","faded");
+    rowEls[0].classList.remove("exp");
+    rowEls[1].classList.remove("exp");
+    PA.classList.remove("expanded");
+    taskIn.classList.remove("hidden");
+    document.body.className="";
   }
 
   /* ── State ── */
@@ -311,14 +371,16 @@ body::before{
 
     var fi=+tr.parentNode.dataset.f,t0=pnow();
     drag={fi:fi,mx:MX[fi],ms:MST[fi],ax:0,ai:0,dc:0,dt:t0,dv:-1,ld:0,sc:0,pL:0,pI:0};
-    cellBounds(fi);
+    pillExpand(fi);
+    /* Measure after expand class applied (before transition finishes) */
+    rowBounds();
     lx=gx(e);flx=lx;
     idx[fi]=absIdx(lx);
     drag.ax=lx;drag.ai=idx[fi];drag.dc=idx[fi];
     vx[0]=vx[1]=vx[2]=lx;vt[0]=vt[1]=vt[2]=t0;vi=0;
 
-    cells[fi].classList.add("on");
     apply(fi);text(fi);
+    bSid=++did;bN=0;setTimeout(nextB,120);
   }
 
   function move(e){
@@ -384,7 +446,7 @@ body::before{
     }
 
     if(fi===2)syncDayMax();
-    cells[fi].classList.remove("on");
+    pillRelease();
     if(raf){cancelAnimationFrame(raf);raf=0}
     drag=null;
   }
