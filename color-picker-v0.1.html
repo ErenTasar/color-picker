@@ -152,16 +152,6 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
 .task-input::placeholder{color:rgba(255,255,255,.2);font-weight:300}
 .task-input.hidden{opacity:0;flex:0 0 0;overflow:hidden;pointer-events:none}
 
-/* ── Actions ── */
-.comp-actions{display:flex;justify-content:flex-end;gap:12px}
-.btn-cancel,.btn-save{
-  border:none;border-radius:12px;padding:8px 20px;
-  font-family:'DM Sans',system-ui,sans-serif;font-size:15px;font-weight:600;
-  cursor:pointer;transition:opacity .2s,transform .15s;
-}
-.btn-cancel{background:rgba(255,255,255,.06);color:rgba(255,255,255,.5)}
-.btn-save{background:rgba(94,181,240,.2);color:rgba(94,181,240,.9)}
-.btn-cancel:active,.btn-save:active{transform:scale(.95)}
 </style>
 </head>
 <body>
@@ -180,11 +170,7 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
         <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
       </div>
     </div>
-    <input class="task-input" id="taskIn" type="text" placeholder="Görev adı..." autocomplete="off" autocorrect="off" spellcheck="false">
-  </div>
-  <div class="comp-actions">
-    <button class="btn-cancel" id="btnX">Vazgeç</button>
-    <button class="btn-save" id="btnS">Kaydet</button>
+    <input class="task-input" id="taskIn" type="text" placeholder="Görev adı..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done">
   </div>
 </div>
 
@@ -290,8 +276,8 @@ body.glow-3::after{opacity:1;background:radial-gradient(ellipse 70% 50% at 50% 8
   }
 
   fab.addEventListener("click",openComp);
-  document.getElementById("btnX").addEventListener("click",closeComp);
-  document.getElementById("btnS").addEventListener("click",closeComp);
+  taskIn.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();closeComp()}});
+  comp.addEventListener("click",function(e){if(e.target===comp)closeComp()});
 
   /* ── DOM-measured bounds + re-anchor ── */
   function rowBounds(){
