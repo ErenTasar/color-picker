@@ -124,6 +124,7 @@ body::before{
 
 /* ── Task input above pills ── */
 .task-input{
+  display:none;
   width:80%;max-width:360px;margin-bottom:8px;
   background:none;border:none;outline:none;resize:none;
   font-family:'DM Sans',system-ui,sans-serif;
@@ -133,6 +134,16 @@ body::before{
   overflow:hidden;max-height:120px;
 }
 .task-input::placeholder{color:rgba(255,255,255,.15);font-weight:300}
+
+/* ── FAB ── */
+.fab{
+  width:56px;height:56px;border-radius:28px;border:none;
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);
+  font-size:28px;font-weight:200;cursor:pointer;
+  margin-top:20px;transition:opacity .3s,transform .3s;
+}
+.fab:active{transform:scale(.92)}
+.fab.hidden{opacity:0;pointer-events:none;transform:scale(.8)}
 </style>
 </head>
 <body>
@@ -149,6 +160,7 @@ body::before{
     <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
     </div>
   </div>
+  <button class="fab" id="fab">+</button>
 </div>
 <script>
 (function(){
@@ -374,15 +386,29 @@ body::before{
   document.addEventListener("mousemove",move);
   document.addEventListener("mouseup",up);
 
-  /* ── Task input ── */
+  /* ── Task input + FAB ── */
   var taskIn=document.getElementById("taskIn");
+  var fab=document.getElementById("fab");
   var scene=document.querySelector(".scene");
+
+  fab.addEventListener("click",function(){
+    taskIn.style.display="";
+    fab.classList.add("hidden");
+    taskIn.focus();
+  });
+
+  function closeInput(){
+    taskIn.value="";taskIn.style.height="auto";taskIn.style.display="none";
+    fab.classList.remove("hidden");
+    scene.style.justifyContent="";scene.style.paddingBottom="";
+  }
+
   taskIn.addEventListener("input",function(){
     taskIn.style.height="auto";
     taskIn.style.height=Math.min(taskIn.scrollHeight,120)+"px";
   });
   taskIn.addEventListener("keydown",function(e){
-    if(e.key==="Enter"){e.preventDefault();taskIn.value="";taskIn.style.height="auto";taskIn.blur()}
+    if(e.key==="Enter"){e.preventDefault();closeInput();taskIn.blur()}
   });
 
   /* ── Keyboard: keep content just above virtual keyboard ── */
@@ -397,10 +423,10 @@ body::before{
   }
   taskIn.addEventListener("focus",function(){
     scene.style.justifyContent="flex-end";
-    scene.style.paddingBottom="280px";/* safe default until syncKB fires */
+    scene.style.paddingBottom="280px";
   });
   taskIn.addEventListener("blur",function(){
-    scene.style.justifyContent="";scene.style.paddingBottom="";
+    setTimeout(function(){if(!drag)closeInput()},150);
   });
 })();
 </script>
