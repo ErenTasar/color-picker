@@ -415,16 +415,15 @@ body::before{
   function syncKB(){
     if(!window.visualViewport)return;
     var off=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
-    if(off>50)scene.style.paddingBottom=(off+20)+"px";
+    if(off>100){
+      scene.style.justifyContent="flex-end";
+      scene.style.paddingBottom=(off+20)+"px";
+    }
   }
   if(window.visualViewport){
     window.visualViewport.addEventListener("resize",syncKB);
     window.visualViewport.addEventListener("scroll",syncKB);
   }
-  taskIn.addEventListener("focus",function(){
-    scene.style.justifyContent="flex-end";
-    scene.style.paddingBottom="280px";
-  });
   taskIn.addEventListener("blur",function(){
     setTimeout(function(){if(!drag)closeInput()},150);
   });
