@@ -120,7 +120,7 @@ body::before{
 /* ── FAB ── */
 .fab{
   position:fixed;bottom:32px;left:50%;z-index:3;
-  width:56px;height:56px;border-radius:28px;border:none;
+  width:56px;height:56px;border-radius:28px;
   background:rgba(255,255,255,.08);
   border:1px solid rgba(255,255,255,.06);
   color:rgba(255,255,255,.5);font-size:28px;font-weight:200;
@@ -297,7 +297,7 @@ body::before{
 
   var now=new Date(),curYear=now.getFullYear();
   function daysIn(m){return new Date(curYear,m+1,0).getDate()}
-  function dayName(y,m,d){return DAYS[new Date(y,m,d).getDay()]}
+  function dayName(m,d){return DAYS[new Date(curYear,m,d).getDay()]}
 
   var initH=now.getHours(),initMin=now.getMinutes();
   var nextMin=Math.ceil((initMin+1)/5)*5;
@@ -365,7 +365,7 @@ body::before{
       var hr=t.h%24,mn=(t.m%12)*5;
       var hStr=hr<10?"0"+hr:""+hr;
       var mStr=mn<10?"0"+mn:""+mn;
-      var dn=dayName(curYear,t.mon,t.day+1);
+      var dn=dayName(t.mon,t.day+1);
 
       var card=document.createElement("div");
       card.className="card";
@@ -590,7 +590,7 @@ body::before{
   /* Proxy input: iOS user-gesture zincirinde senkron focus için */
   var proxy=document.createElement("input");
   proxy.type="text";proxy.setAttribute("aria-hidden","true");proxy.tabIndex=-1;
-  Object.assign(proxy.style,{position:"fixed",top:"-9999px",left:"-9999px",opacity:"0",width:"1px",height:"1px",border:"none",padding:"0",pointerEvents:"none"});
+  proxy.style.cssText="position:fixed;top:-9999px;left:-9999px;opacity:0;width:1px;height:1px;border:none;padding:0;pointer-events:none";
   document.body.appendChild(proxy);
 
   function openComposer(){
