@@ -616,12 +616,12 @@ body::before{
     if(!pull.active||pull.triggered||composerOpen)return;
     var t=e.touches[0],dx=t.clientX-pull.startX,dy=t.clientY-pull.startY;
     if(!pull.axisLocked){
-      if(Math.abs(dx)<6&&Math.abs(dy)<6)return;
+      if(Math.abs(dx)<12&&Math.abs(dy)<12)return;
       pull.axisLocked=true;
-      pull.axis=Math.abs(dx)>Math.abs(dy)?"x":"y";
+      pull.axis=(Math.abs(dx)>Math.abs(dy)*2)?"x":"y";
     }
     if(pull.axis!=="x")return;
-    if(timeline.scrollLeft<2&&dx>60){
+    if(timeline.scrollLeft<2&&dx>70&&Math.abs(dy)<30){
       pull.triggered=true;
     }
   },{passive:true});
