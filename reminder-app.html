@@ -664,7 +664,7 @@ body::before{
     if(e.key==="Enter"){e.preventDefault();closeComposer(true)}
   });
   taskIn.addEventListener("blur",function(){
-    setTimeout(function(){if(composerOpen&&!drag&&!pickerActive)closeComposer(false)},200);
+    setTimeout(function(){if(composerOpen&&!drag&&!pickerActive)closeComposer(true)},200);
   });
 
   /* Keyboard positioning */
