@@ -119,17 +119,18 @@ body::before{
 
 /* ── FAB ── */
 .fab{
-  position:fixed;bottom:32px;right:24px;z-index:3;
+  position:fixed;bottom:32px;left:50%;z-index:3;
   width:56px;height:56px;border-radius:28px;border:none;
   background:rgba(255,255,255,.08);
   border:1px solid rgba(255,255,255,.06);
   color:rgba(255,255,255,.5);font-size:28px;font-weight:200;
   cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  transform:translateX(-50%);
   transition:transform .3s var(--ease),opacity .3s;
   display:flex;align-items:center;justify-content:center;
 }
-.fab:active{transform:scale(.9)}
-.fab.hidden{transform:scale(.6);opacity:0;pointer-events:none}
+.fab:active{transform:translateX(-50%) scale(.9)}
+.fab.hidden{transform:translateX(-50%) scale(.6);opacity:0;pointer-events:none}
 
 /* ═══════════════════════════════════════════
    SCREEN 2 — COMPOSER
@@ -338,11 +339,12 @@ body::before{
       return;
     }
 
-    for(var i=0;i<tasks.length;i++){
+    var total=tasks.length;
+    for(var i=0;i<total;i++){
       var t=tasks[i],w=urgencyW(t.ts);
       var dir=i%2===0?1:-1;
-      var fillPct=Math.round(Math.max(w*100,.5));
-      var fillCls=FILLS[Math.floor(Math.random()*4)];
+      var fillPct=Math.round(Math.max((1-i/total)*100,1));
+      var fillCls=FILLS[i%4];
 
       var hr=t.h%24,mn=(t.m%12)*5;
       var hStr=hr<10?"0"+hr:""+hr;
@@ -564,13 +566,22 @@ body::before{
     for(var j=0;j<4;j++){papply(j);ptext(j)}
   }
 
+  /* Proxy input: iOS user-gesture zincirinde senkron focus için */
+  var proxy=document.createElement("input");
+  proxy.type="text";proxy.setAttribute("aria-hidden","true");proxy.tabIndex=-1;
+  Object.assign(proxy.style,{position:"fixed",top:"-9999px",left:"-9999px",opacity:"0",width:"1px",height:"1px",border:"none",padding:"0",pointerEvents:"none"});
+  document.body.appendChild(proxy);
+
   function openComposer(){
+    proxy.focus({preventScroll:true}); /* senkron focus — gesture zincirini koru */
     composerOpen=true;
     resetIdx();
     fab.classList.add("hidden");
     overlay.classList.add("active");
     composer.classList.add("active");
-    setTimeout(function(){taskIn.focus()},100);
+    kbReady=false;
+    requestAnimationFrame(function(){taskIn.focus({preventScroll:true})});
+    setTimeout(function(){kbReady=true},200);
   }
 
   function closeComposer(save){
@@ -584,7 +595,8 @@ body::before{
     }
     taskIn.value="";taskIn.style.height="auto";
     taskIn.blur();
-    composerOpen=false;
+    composerOpen=false;kbReady=false;
+    composer.style.bottom="0";
     composer.classList.remove("active");
     overlay.classList.remove("active");
     fab.classList.remove("hidden");
@@ -592,6 +604,29 @@ body::before{
 
   fab.addEventListener("click",openComposer);
   overlay.addEventListener("click",function(){closeComposer(false)});
+
+  /* ── Pull-to-add: swipe right at scroll=0 opens composer ── */
+  var pull={active:false,startX:0,startY:0,axisLocked:false,axis:null,triggered:false};
+  timeline.addEventListener("touchstart",function(e){
+    if(composerOpen)return;
+    var t=e.touches[0];
+    pull={active:true,startX:t.clientX,startY:t.clientY,axisLocked:false,axis:null,triggered:false};
+  },{passive:true});
+  timeline.addEventListener("touchmove",function(e){
+    if(!pull.active||pull.triggered||composerOpen)return;
+    var t=e.touches[0],dx=t.clientX-pull.startX,dy=t.clientY-pull.startY;
+    if(!pull.axisLocked){
+      if(Math.abs(dx)<6&&Math.abs(dy)<6)return;
+      pull.axisLocked=true;
+      pull.axis=Math.abs(dx)>Math.abs(dy)?"x":"y";
+    }
+    if(pull.axis!=="x")return;
+    if(timeline.scrollLeft<2&&dx>60){
+      pull.triggered=true;
+      openComposer();
+    }
+  },{passive:true});
+  timeline.addEventListener("touchend",function(){pull.active=false},{passive:true});
 
   taskIn.addEventListener("input",function(){
     taskIn.style.height="auto";
@@ -604,11 +639,12 @@ body::before{
     setTimeout(function(){if(composerOpen&&!drag)closeComposer(false)},200);
   });
 
-  /* Keyboard positioning */
+  /* Keyboard positioning — debounce ilk 150ms (açılma geçişi sırasında zıplamayı önle) */
+  var kbReady=false;
   function syncKB(){
-    if(!window.visualViewport||!composerOpen)return;
+    if(!window.visualViewport||!composerOpen||!kbReady)return;
     var off=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
-    composer.style.bottom=Math.max(off,0)+"px";
+    if(off>50)composer.style.bottom=off+"px";
   }
   if(window.visualViewport){
     window.visualViewport.addEventListener("resize",syncKB);
