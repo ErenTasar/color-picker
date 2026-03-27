@@ -329,11 +329,11 @@ body::before{
   }
 
   /* Sample tasks */
-  tasks.push({id:nextId++,title:"Toplant\u0131ya haz\u0131rlan",h:14,m:6,mon:now.getMonth(),day:now.getDate()-1,ts:makeTs(14,6,now.getMonth(),now.getDate()-1)});
-  tasks.push({id:nextId++,title:"Vergi beyannamesi son kontrol",h:18,m:0,mon:now.getMonth(),day:now.getDate()-1,ts:makeTs(18,0,now.getMonth(),now.getDate()-1)});
-  tasks.push({id:nextId++,title:"Fatura \u00f6de ve makbuzu muhasebeciye ilet",h:9,m:0,mon:now.getMonth(),day:now.getDate(),ts:makeTs(9,0,now.getMonth(),now.getDate())});
-  tasks.push({id:nextId++,title:"Sunumu g\u00f6zden ge\u00e7ir ve notlar\u0131 d\u00fczenle",h:16,m:0,mon:2,day:2,ts:makeTs(16,0,2,2)});
-  tasks.push({id:nextId++,title:"Di\u015f randevusu",h:11,m:3,mon:3,day:9,ts:makeTs(11,3,3,9)});
+  tasks.push({id:nextId++,title:"Boncuk laptopun \u00fcst\u00fcne kustu klavyeyi kurtar",h:now.getHours(),m:Math.floor(now.getMinutes()/5),mon:now.getMonth(),day:now.getDate()-1,ts:makeTs(now.getHours(),Math.floor(now.getMinutes()/5),now.getMonth(),now.getDate()-1)});
+  tasks.push({id:nextId++,title:"Bisket\u2019in do\u011fum g\u00fcn\u00fc pastas\u0131 sipari\u015f et ton bal\u0131kl\u0131 olsun",h:18,m:0,mon:now.getMonth(),day:now.getDate()-1,ts:makeTs(18,0,now.getMonth(),now.getDate()-1)});
+  tasks.push({id:nextId++,title:"Anneyi ara yoksa \u2018ben \u00f6ld\u00fcm m\u00fc\u2019 mesaj\u0131 atacak yine",h:9,m:0,mon:now.getMonth(),day:now.getDate(),ts:makeTs(9,0,now.getMonth(),now.getDate())});
+  tasks.push({id:nextId++,title:"Bisket ile Boncuk\u2019un ortak foto\u011fraf \u00e7ekimi ikisi ayn\u0131 anda kameraya baks\u0131n challenge",h:16,m:0,mon:now.getMonth(),day:now.getDate()+2,ts:makeTs(16,0,now.getMonth(),now.getDate()+2)});
+  tasks.push({id:nextId++,title:"Veteriner randevusu ama Boncuk \u00e7antay\u0131 g\u00f6r\u00fcnce dolab\u0131n \u00fcst\u00fcne ka\u00e7\u0131yor plan B haz\u0131rla",h:11,m:3,mon:now.getMonth()+1>11?0:now.getMonth()+1,day:9,ts:makeTs(11,3,now.getMonth()+1>11?0:now.getMonth()+1,9)});
 
   /* ═══════════════════════════════════════════
      CARD RENDERING
