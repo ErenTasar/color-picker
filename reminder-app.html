@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Reminders</title>
+<style>
+:root{--ease:cubic-bezier(.32,.72,0,1);--c0:94,181,240;--c1:240,112,152;--c2:69,212,138;--c3:245,197,66}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{
+  width:100%;height:100%;overflow:hidden;position:fixed;inset:0;
+  font-family:-apple-system,'SF Pro Text','SF Pro Display',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+body{background:#0A0A0F;color:#fff}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 65% 55% at 22% 78%,rgba(18,28,58,.55) 0%,transparent 65%),
+    radial-gradient(ellipse 55% 50% at 80% 18%,rgba(40,14,42,.35) 0%,transparent 65%),
+    radial-gradient(ellipse 35% 30% at 52% 50%,rgba(12,20,42,.25) 0%,transparent 55%);
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN 1 — CARD VIEW
+   ═══════════════════════════════════════════ */
+.card-scene{
+  position:fixed;inset:0;z-index:1;
+  display:flex;align-items:center;justify-content:center;
+}
+.timeline{
+  display:flex;gap:10px;padding:0 16px;
+  overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  align-items:center;touch-action:pan-x;
+}
+.timeline::-webkit-scrollbar{display:none}
+.end{flex:0 0 6px}
+
+/* ── Empty state ── */
+.empty{
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  opacity:.25;pointer-events:none;
+}
+.empty-icon{font-size:48px;font-weight:200;line-height:1}
+.empty-text{font-size:15px;font-weight:500;letter-spacing:-.01em}
+
+/* ── Card ── */
+.card{
+  flex:0 0 162px;position:relative;overflow:hidden;
+  --w:0;--dir:1;
+  --scale:calc(0.97 + var(--w) * 0.03);
+  --tilt:calc(var(--dir) * 0.25deg * (1 - var(--w)));
+  --shadow-spread:calc(4px + var(--w) * 10px);
+  --shadow-alpha:calc(0.04 + var(--w) * 0.05);
+  --border-alpha:calc(0.05 + var(--w) * 0.035);
+  transform:scale(var(--scale)) rotate(var(--tilt));
+  transform-origin:center;border-radius:28px;
+  background:rgba(255,255,255,.028);
+  border:0.5px solid rgba(255,255,255,var(--border-alpha));
+  box-shadow:0 .5px 1px rgba(0,0,0,.1),0 3px var(--shadow-spread) rgba(0,0,0,var(--shadow-alpha)),0 10px 28px rgba(0,0,0,.035);
+  transition:transform .2s var(--ease),box-shadow .2s,opacity .35s;
+}
+.card:active{transform:scale(calc(var(--scale)*.97)) rotate(var(--tilt))}
+.card::before{
+  content:'';position:absolute;top:0;left:14%;right:14%;height:.5px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,calc(.035 + var(--w)*.04)),transparent);
+  z-index:4;
+}
+.card.removing{transform:scale(.85);opacity:0;pointer-events:none}
+
+/* Card fill */
+.card .cfill{position:absolute;top:0;left:0;bottom:0;border-radius:28px;pointer-events:none;z-index:0}
+.cfill-b{background:linear-gradient(to right,rgba(var(--c0),.10),rgba(var(--c0),.01))}
+.cfill-p{background:linear-gradient(to right,rgba(var(--c1),.11),rgba(var(--c1),.012))}
+.cfill-g{background:linear-gradient(to right,rgba(var(--c2),.10),rgba(var(--c2),.01))}
+.cfill-y{background:linear-gradient(to right,rgba(var(--c3),.10),rgba(var(--c3),.01))}
+
+/* Card content */
+.card .cc{
+  position:relative;z-index:2;
+  padding:16px 16px 14px 18px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  min-height:112px;
+}
+.card .task{
+  font-size:15px;font-weight:600;line-height:1.38;letter-spacing:-.012em;
+  color:rgba(255,255,255,.9);
+  display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;
+}
+.card .foot{display:flex;align-items:flex-end;justify-content:space-between;margin-top:10px;flex-shrink:0}
+.card .time{display:flex;flex-direction:column;gap:3px}
+.card .clock{font-size:17px;font-weight:700;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.card .clock .co{font-weight:300;color:rgba(255,255,255,.12);font-size:13px;letter-spacing:0;margin:0 .5px}
+.card .date{font-size:11.5px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums;opacity:.75}
+.card .date .wd{opacity:.45;letter-spacing:0}
+.cb{color:rgb(var(--c0))}.cp{color:rgb(var(--c1))}.cg{color:rgb(var(--c2))}.cy{color:rgb(var(--c3))}
+
+/* Check */
+.card .ck{
+  width:22px;height:22px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.08);flex-shrink:0;
+  transition:transform .12s,border-color .15s,background .15s;
+  cursor:pointer;
+}
+.card .ck:active{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.06)}
+.card .ck.done{
+  border-color:rgba(var(--c2),.5);background:rgba(var(--c2),.2);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2345D48A' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:center;background-size:12px;
+}
+
+/* Card entry */
+@keyframes cardIn{
+  from{opacity:0;transform:scale(calc(var(--scale)*.94)) rotate(var(--tilt)) translateY(10px)}
+  to{opacity:1;transform:scale(var(--scale)) rotate(var(--tilt)) translateY(0)}
+}
+.card{animation:cardIn .5s var(--ease) both}
+
+/* ── FAB ── */
+.fab{
+  position:fixed;bottom:32px;right:24px;z-index:3;
+  width:56px;height:56px;border-radius:28px;border:none;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.06);
+  color:rgba(255,255,255,.5);font-size:28px;font-weight:200;
+  cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  transition:transform .3s var(--ease),opacity .3s;
+  display:flex;align-items:center;justify-content:center;
+}
+.fab:active{transform:scale(.9)}
+.fab.hidden{transform:scale(.6);opacity:0;pointer-events:none}
+
+/* ═══════════════════════════════════════════
+   SCREEN 2 — COMPOSER
+   ═══════════════════════════════════════════ */
+.overlay{
+  position:fixed;inset:0;z-index:5;
+  background:rgba(0,0,0,.55);
+  -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.overlay.active{opacity:1;pointer-events:auto}
+
+.composer{
+  position:fixed;left:0;right:0;bottom:0;z-index:10;
+  padding:12px 16px 8px;
+  background:rgba(14,14,20,.92);
+  border-top:1px solid rgba(255,255,255,.04);
+  transform:translateY(100%);
+  transition:transform .35s var(--ease),bottom .15s;
+}
+.composer.active{transform:translateY(0)}
+
+.comp-input{
+  display:block;width:100%;border:none;outline:none;resize:none;
+  background:none;
+  font-family:inherit;font-size:17px;font-weight:500;
+  color:rgba(255,255,255,.9);line-height:1.35;
+  padding:0 4px 10px;margin-bottom:4px;
+  caret-color:rgba(255,255,255,.5);
+  overflow:hidden;max-height:80px;
+  -webkit-user-select:text;user-select:text;
+}
+.comp-input::placeholder{color:rgba(255,255,255,.18);font-weight:400}
+
+/* ── Picker (inside composer) ── */
+.p-row{
+  display:flex;align-items:center;
+  width:100%;gap:5px;overflow:hidden;
+  transition:gap .4s var(--ease);
+  touch-action:none;
+}
+.p-row.expanded{gap:0}
+
+.p-sep{
+  flex:0 0 auto;font-size:20px;font-weight:300;
+  color:rgba(255,255,255,.1);line-height:44px;margin:0 1px;
+  transition:opacity .3s,flex .4s var(--ease),font-size .4s,margin .4s;
+}
+.p-row.expanded .p-sep{flex:0 0 0;opacity:0;font-size:0;margin:0}
+
+.p-cell{
+  flex:1 1 0;min-width:0;overflow:hidden;border-radius:22px;
+  transition:flex .4s var(--ease),opacity .2s,border-radius .4s;
+  touch-action:none;user-select:none;-webkit-user-select:none;
+}
+.p-cell.on{border-radius:28px}
+.p-cell.dimmed{flex:0 0 0 !important;opacity:0;pointer-events:none}
+
+.p-cell[data-f="0"]{--c:var(--c0)}
+.p-cell[data-f="1"]{--c:var(--c1)}
+.p-cell[data-f="2"]{--c:var(--c2)}
+.p-cell[data-f="3"]{--c:var(--c3)}
+
+.p-track{
+  width:100%;position:relative;height:44px;border-radius:22px;
+  cursor:grab;
+  background:rgba(var(--c),.12);border:1px solid rgba(var(--c),.06);
+  transition:height .4s var(--ease),border-radius .4s,box-shadow .4s,border-color .3s;
+}
+.p-cell.on .p-track{
+  height:64px;border-radius:28px;cursor:grabbing;
+  background:rgba(var(--c),.06);border-color:rgba(var(--c),.1);
+  box-shadow:0 0 32px rgba(var(--c),.15),inset 0 0 14px rgba(var(--c),.05);
+}
+.p-cell.dimmed .p-track{height:0;border-width:0}
+
+.p-fill{
+  position:absolute;top:0;bottom:0;left:0;border-radius:22px;
+  background:rgba(var(--c),.75);
+  transition:width .1s ease-out,border-radius .4s;will-change:width;
+}
+.p-cell.on .p-fill{border-radius:28px;background:rgba(var(--c),.88)}
+.p-cell.snapping .p-fill{transition:width .25s var(--ease),border-radius .4s}
+
+.p-val{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;color:rgba(255,255,255,.88);
+  letter-spacing:-.5px;z-index:3;pointer-events:none;
+  text-shadow:0 1px 2px rgba(0,0,0,.25);
+  font-variant-numeric:tabular-nums;
+  transition:font-size .4s var(--ease),color .2s,letter-spacing .3s;
+}
+.p-cell.on .p-val{font-size:36px;color:#fff;letter-spacing:-2px}
+
+.p-ticks{
+  position:absolute;top:0;bottom:0;left:5%;right:5%;
+  display:flex;align-items:center;justify-content:space-between;
+  pointer-events:none;opacity:0;transition:opacity .4s;
+}
+.p-cell.on .p-ticks{opacity:1}
+.p-ticks b{display:block;width:1px;flex-shrink:0;background:rgba(255,255,255,.06);height:45%;border-radius:1px}
+.p-ticks b.m{height:60%;background:rgba(255,255,255,.12)}
+
+.p-now{
+  position:absolute;top:18%;bottom:18%;width:1.5px;
+  background:rgba(255,255,255,.2);border-radius:1px;
+  pointer-events:none;z-index:1;transform:translateX(-50%);
+  transition:left .3s,opacity .4s;
+}
+.p-cell.on .p-now{background:rgba(255,255,255,.35)}
+.p-cell.dimmed .p-now{opacity:0}
+</style>
+</head>
+<body>
+
+<!-- ═══ Screen 1: Card View ═══ -->
+<div class="card-scene" id="cardScene">
+  <div class="timeline" id="timeline"></div>
+</div>
+<button class="fab" id="fab">+</button>
+
+<!-- ═══ Screen 2: Composer ═══ -->
+<div class="overlay" id="overlay"></div>
+<div class="composer" id="composer">
+  <textarea class="comp-input" id="taskIn" rows="1" placeholder="Ne yapacaksın?" enterkeyhint="done"></textarea>
+  <div class="p-row" id="pRow">
+    <div class="p-cell" data-f="0"><div class="p-track"><div class="p-fill" id="pf0"></div><span class="p-val" id="pd0"></span><div class="p-ticks" id="pt0"></div><div class="p-now" id="pn0"></div></div></div>
+    <span class="p-sep">:</span>
+    <div class="p-cell" data-f="1"><div class="p-track"><div class="p-fill" id="pf1"></div><span class="p-val" id="pd1"></span><div class="p-ticks" id="pt1"></div><div class="p-now" id="pn1"></div></div></div>
+    <span class="p-sep">;</span>
+    <div class="p-cell" data-f="2"><div class="p-track"><div class="p-fill" id="pf2"></div><span class="p-val" id="pd2"></span><div class="p-ticks" id="pt2"></div><div class="p-now" id="pn2"></div></div></div>
+    <span class="p-sep">/</span>
+    <div class="p-cell" data-f="3"><div class="p-track"><div class="p-fill" id="pf3"></div><span class="p-val" id="pd3"></span><div class="p-ticks" id="pt3"></div><div class="p-now" id="pn3"></div></div></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* ═══════════════════════════════════════════
+     DATA & CONFIG
+     ═══════════════════════════════════════════ */
+  var H=[],M=[],A=["Oca","\u015eub","Mar","Nis","May","Haz","Tem","A\u011fu","Eyl","Eki","Kas","Ara"],D=[];
+  var DAYS=["Paz","Pzt","Sal","\u00c7ar","Per","Cum","Cmt"];
+  var i;
+  for(i=0;i<=24;i++)H[i]=((i%24)<10?"0":"")+(i%24);
+  for(i=0;i<=12;i++)M[i]=((i%12)*5<10?"0":"")+((i%12)*5);
+  for(i=1;i<=31;i++)D[i-1]=""+i;
+
+  var now=new Date(),curYear=now.getFullYear();
+  function daysIn(m){return new Date(curYear,m+1,0).getDate()}
+  function dayName(y,m,d){return DAYS[new Date(y,m,d).getDay()]}
+
+  var initH=now.getHours(),initMin=now.getMinutes();
+  var nextMin=Math.ceil((initMin+1)/5)*5;
+  if(nextMin>=60){initH=(initH+1)%24;nextMin=0}
+
+  var F=[H,M,A,D];
+  var MX=[24,12,11,daysIn(now.getMonth())-1];
+  var idx=[initH,nextMin/5,now.getMonth(),now.getDate()-1];
+  var MST=[2,1,1,3];
+  var DEAD=.02,DEADHI=.98,DINV=1/.96,PAD=.04,DWMS=150,VELTHR=.15;
+  var pnow=performance.now.bind(performance);
+
+  /* ═══════════════════════════════════════════
+     TASKS
+     ═══════════════════════════════════════════ */
+  var tasks=[],nextId=1;
+  var FILLS=["cfill-b","cfill-p","cfill-g","cfill-y"];
+
+  function urgencyW(ts){
+    var diff=ts-Date.now();
+    if(diff<0)return 1;
+    var hrs=diff/3600000;
+    return hrs>720?0:Math.max(0,1-hrs/720);
+  }
+
+  function makeTs(h,mIdx,mon,day){
+    var hr=h%24,mn=(mIdx%12)*5;
+    return new Date(curYear,mon,day+1,hr,mn).getTime();
+  }
+
+  /* Sample tasks */
+  tasks.push({id:nextId++,title:"Toplant\u0131ya haz\u0131rlan",h:14,m:6,mon:now.getMonth(),day:now.getDate()-1,ts:makeTs(14,6,now.getMonth(),now.getDate()-1)});
+  tasks.push({id:nextId++,title:"Vergi beyannamesi son kontrol",h:18,m:0,mon:now.getMonth(),day:now.getDate()-1,ts:makeTs(18,0,now.getMonth(),now.getDate()-1)});
+  tasks.push({id:nextId++,title:"Fatura \u00f6de ve makbuzu muhasebeciye ilet",h:9,m:0,mon:now.getMonth(),day:now.getDate(),ts:makeTs(9,0,now.getMonth(),now.getDate())});
+  tasks.push({id:nextId++,title:"Sunumu g\u00f6zden ge\u00e7ir ve notlar\u0131 d\u00fczenle",h:16,m:0,mon:2,day:2,ts:makeTs(16,0,2,2)});
+  tasks.push({id:nextId++,title:"Di\u015f randevusu",h:11,m:3,mon:3,day:9,ts:makeTs(11,3,3,9)});
+
+  /* ═══════════════════════════════════════════
+     CARD RENDERING
+     ═══════════════════════════════════════════ */
+  var timeline=document.getElementById("timeline");
+  var emptyEl=null;
+
+  function renderCards(){
+    timeline.innerHTML="";
+    tasks.sort(function(a,b){return a.ts-b.ts});
+
+    if(!tasks.length){
+      if(!emptyEl){
+        emptyEl=document.createElement("div");
+        emptyEl.className="empty";
+        emptyEl.innerHTML='<div class="empty-icon">+</div><div class="empty-text">Yeni hat\u0131rlatma ekle</div>';
+      }
+      timeline.appendChild(emptyEl);
+      return;
+    }
+
+    for(var i=0;i<tasks.length;i++){
+      var t=tasks[i],w=urgencyW(t.ts);
+      var dir=i%2===0?1:-1;
+      var fillPct=Math.round(Math.max(w*100,.5));
+      var fillCls=FILLS[Math.floor(Math.random()*4)];
+
+      var hr=t.h%24,mn=(t.m%12)*5;
+      var hStr=hr<10?"0"+hr:""+hr;
+      var mStr=mn<10?"0"+mn:""+mn;
+      var dn=dayName(curYear,t.mon,t.day+1);
+
+      var card=document.createElement("div");
+      card.className="card";
+      card.style.cssText="--w:"+w.toFixed(3)+";--dir:"+dir;
+      card.style.animationDelay=(i*.05)+"s";
+      card.dataset.id=t.id;
+
+      card.innerHTML=
+        '<div class="cfill '+fillCls+'" style="width:'+fillPct+'%"></div>'+
+        '<div class="cc">'+
+          '<div class="task">'+esc(t.title)+'</div>'+
+          '<div class="foot">'+
+            '<div class="time">'+
+              '<span class="clock"><span class="cb">'+hStr+'</span><span class="co">:</span><span class="cp">'+mStr+'</span></span>'+
+              '<span class="date"><span class="cy">'+(t.day+1)+'</span> <span class="cg">'+A[t.mon]+'</span> <span class="wd">'+dn+'</span></span>'+
+            '</div>'+
+            '<div class="ck" data-id="'+t.id+'"></div>'+
+          '</div>'+
+        '</div>';
+
+      timeline.appendChild(card);
+    }
+    var endEl=document.createElement("div");
+    endEl.className="end";
+    timeline.appendChild(endEl);
+  }
+
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+  renderCards();
+
+  /* Check circle tap */
+  timeline.addEventListener("click",function(e){
+    var ck=e.target.closest(".ck");
+    if(!ck)return;
+    e.stopPropagation();
+    var id=+ck.dataset.id;
+    ck.classList.add("done");
+    var card=ck.closest(".card");
+    setTimeout(function(){
+      card.classList.add("removing");
+      setTimeout(function(){
+        tasks=tasks.filter(function(t){return t.id!==id});
+        renderCards();
+      },350);
+    },400);
+  });
+
+  /* ═══════════════════════════════════════════
+     PICKER ENGINE (from v5)
+     ═══════════════════════════════════════════ */
+  var pRow=document.getElementById("pRow");
+
+  function rowBounds(){
+    var r=pRow.getBoundingClientRect(),w=r.width*.86,pp=w*PAD;
+    drag.pL=r.left+r.width*.5-w*.5+pp;
+    drag.pI=1/(w-2*pp);
+  }
+  var bSid,bN,did=0;
+  function nextB(){
+    if(!drag||did!==bSid)return;
+    drag.ax=lx;drag.ai=idx[drag.fi];
+    rowBounds();
+    if(++bN<3)setTimeout(nextB,bN===1?140:160);
+  }
+
+  var PCT=new Array(4),FLX=new Array(4);
+  function buildLookup(fi){
+    var mx=MX[fi],p=new Array(mx+1),f=new Array(mx+1);
+    for(var j=0;j<=mx;j++){var r=j/mx;p[j]=(5+95*r)+"%";f[j]=(.5+1.3*r)+" 1 0px"}
+    PCT[fi]=p;FLX[fi]=f;
+  }
+  for(i=0;i<4;i++)buildLookup(i);
+
+  var pfl=new Array(4),pcells=new Array(4),pds=new Array(4);
+  for(i=0;i<4;i++){
+    pfl[i]=document.getElementById("pf"+i);
+    pds[i]=document.getElementById("pd"+i);
+    pcells[i]=pRow.querySelector('[data-f="'+i+'"]');
+  }
+
+  var MAJ=[6,3,3,5],tickEls=new Array(4);
+  function buildTicks(fi){
+    var td=tickEls[fi],fg=document.createDocumentFragment(),mx=MX[fi];
+    td.textContent="";
+    for(var j=0;j<=mx;j++){var b=document.createElement("b");if(j%MAJ[fi]===0)b.className="m";fg.appendChild(b)}
+    td.appendChild(fg);
+  }
+  for(i=0;i<4;i++){tickEls[i]=document.getElementById("pt"+i);buildTicks(i)}
+
+  var prevDayMax=MX[3];
+  function syncDayMax(){
+    var nm=daysIn(idx[2])-1;
+    if(nm===prevDayMax)return;
+    MX[3]=nm;prevDayMax=nm;
+    if(idx[3]>nm)idx[3]=nm;
+    buildLookup(3);buildTicks(3);papply(3);ptext(3);
+  }
+
+  function papply(fi){pfl[fi].style.width=PCT[fi][idx[fi]];pcells[fi].style.flex=FLX[fi][idx[fi]]}
+  function ptext(fi){pds[fi].textContent=F[fi][idx[fi]]}
+  for(i=0;i<4;i++){papply(i);ptext(i)}
+
+  /* Now markers */
+  var nowIdx=[now.getHours(),Math.floor(now.getMinutes()/5),now.getMonth(),now.getDate()-1];
+  for(i=0;i<4;i++){
+    var ni=nowIdx[i]>MX[i]?MX[i]:nowIdx[i];
+    document.getElementById("pn"+i).style.left=PCT[i][ni];
+  }
+
+  /* Drag state */
+  var drag=null,raf=0,lx=0,flx=-1;
+  var vx=[0,0,0],vt=[0,0,0],vi=0;
+
+  function pcls(fi,on){
+    for(var j=0;j<4;j++){
+      pcells[j].classList.toggle("on",on&&j===fi);
+      pcells[j].classList.toggle("dimmed",on&&j!==fi);
+    }
+    pRow.classList.toggle("expanded",on);
+  }
+
+  function gx(e){var t=e.touches;return t&&t.length?t[0].clientX+.5|0:e.clientX+.5|0}
+
+  function absIdx(x){
+    var t=(x-drag.pL)*drag.pI;
+    if(t<=0)return 0;if(t>=1)return drag.mx;
+    if(t<DEAD)t=0;else if(t>DEADHI)t=1;else t=(t-DEAD)*DINV;
+    return t*drag.mx+.5|0;
+  }
+  function deltaIdx(x){
+    var rawD=(x-drag.ax)*drag.mx*drag.pI;
+    var steps=rawD>0?rawD+.5|0:rawD-.5|0;
+    var t=drag.ai+steps;
+    return t<0?0:t>drag.mx?drag.mx:t;
+  }
+
+  function pdown(e){
+    var tr=e.target.closest(".p-track");if(!tr||!composerOpen)return;
+    e.preventDefault();e.stopPropagation();
+    if(raf){cancelAnimationFrame(raf);raf=0}
+    var fi=+tr.parentNode.dataset.f,t0=pnow();
+    drag={fi:fi,mx:MX[fi],ms:MST[fi],ax:0,ai:0,dc:0,dt:t0,dv:-1,ld:0,sc:0,pL:0,pI:0};
+    rowBounds();
+    lx=gx(e);flx=lx;
+    idx[fi]=absIdx(lx);
+    drag.ax=lx;drag.ai=idx[fi];drag.dc=idx[fi];
+    vx[0]=vx[1]=vx[2]=lx;vt[0]=vt[1]=vt[2]=t0;vi=0;
+    pcls(fi,true);papply(fi);ptext(fi);
+    bSid=++did;bN=0;setTimeout(nextB,120);
+  }
+  function pmove(e){
+    if(!drag)return;e.preventDefault();
+    lx=gx(e);
+    if(!raf)raf=requestAnimationFrame(pframe);
+  }
+  function pframe(){
+    raf=0;if(!drag)return;
+    var fi=drag.fi;
+    if(lx===flx){
+      if(drag.dv<0){var sd=idx[fi]-drag.dc;if(sd<=1&&sd>=-1&&pnow()-drag.dt>=DWMS)drag.dv=idx[fi]}
+      return;
+    }
+    var dpx=lx-flx;flx=lx;
+    var now2=pnow();
+    vi=(vi+1)%3;vx[vi]=lx;vt[vi]=now2;
+    var t=deltaIdx(lx),c=idx[fi],d=t-c,ms=drag.ms;
+    if(d>ms)d=ms;else if(d<-ms)d=-ms;
+    if(drag.ld===0&&(d===1||d===-1)&&dpx>-2&&dpx<2){if(drag.sc===0){d=0;drag.sc=1}else drag.sc=0}else drag.sc=0;
+    drag.ld=d;
+    if(d){c+=d;idx[fi]=c;papply(fi);ptext(fi)}
+    var df=c-drag.dc;
+    if(df>1||df<-1){drag.dc=c;drag.dt=now2}
+    else if(now2-drag.dt>=DWMS)drag.dv=c;
+  }
+  function pup(){
+    if(!drag)return;
+    var fi=drag.fi,mx=drag.mx,c=idx[fi],f=c;
+    if(drag.dv>=0){var dd=drag.dv-c;if(dd<=1&&dd>=-1)f=drag.dv}
+    else{var oldest=(vi+1)%3,dt=vt[vi]-vt[oldest];if(dt>16&&dt<300){var dx=vx[vi]-vx[oldest],thr=dt*VELTHR;if(dx>thr&&c<mx)f=c+1;else if(dx<-thr&&c>0)f=c-1}}
+    if(f!==c){pcells[fi].classList.add("snapping");idx[fi]=f;papply(fi);ptext(fi);setTimeout(function(){pcells[fi].classList.remove("snapping")},280)}
+    if(fi===2)syncDayMax();
+    pcls(0,false);
+    for(var j=0;j<4;j++)pcells[j].style.flex=FLX[j][idx[j]];
+    if(raf){cancelAnimationFrame(raf);raf=0}
+    drag=null;
+  }
+
+  document.addEventListener("touchstart",pdown,{passive:false});
+  document.addEventListener("touchmove",pmove,{passive:false});
+  document.addEventListener("touchend",pup);
+  document.addEventListener("touchcancel",pup);
+  document.addEventListener("mousedown",pdown);
+  document.addEventListener("mousemove",pmove);
+  document.addEventListener("mouseup",pup);
+
+  /* ═══════════════════════════════════════════
+     COMPOSER
+     ═══════════════════════════════════════════ */
+  var fab=document.getElementById("fab");
+  var overlay=document.getElementById("overlay");
+  var composer=document.getElementById("composer");
+  var taskIn=document.getElementById("taskIn");
+  var composerOpen=false;
+
+  function resetIdx(){
+    var n=new Date();
+    var h=n.getHours(),mn=n.getMinutes();
+    var nm=Math.ceil((mn+1)/5)*5;
+    if(nm>=60){h=(h+1)%24;nm=0}
+    idx[0]=h;idx[1]=nm/5;idx[2]=n.getMonth();idx[3]=n.getDate()-1;
+    MX[3]=daysIn(idx[2])-1;prevDayMax=MX[3];
+    buildLookup(3);buildTicks(3);
+    for(var j=0;j<4;j++){papply(j);ptext(j)}
+  }
+
+  function openComposer(){
+    composerOpen=true;
+    resetIdx();
+    fab.classList.add("hidden");
+    overlay.classList.add("active");
+    composer.classList.add("active");
+    setTimeout(function(){taskIn.focus()},100);
+  }
+
+  function closeComposer(save){
+    if(save){
+      var title=taskIn.value.trim();
+      if(title){
+        var ts=makeTs(idx[0],idx[1],idx[2],idx[3]);
+        tasks.push({id:nextId++,title:title,h:idx[0],m:idx[1],mon:idx[2],day:idx[3],ts:ts});
+        renderCards();
+      }
+    }
+    taskIn.value="";taskIn.style.height="auto";
+    taskIn.blur();
+    composerOpen=false;
+    composer.classList.remove("active");
+    overlay.classList.remove("active");
+    fab.classList.remove("hidden");
+  }
+
+  fab.addEventListener("click",openComposer);
+  overlay.addEventListener("click",function(){closeComposer(false)});
+
+  taskIn.addEventListener("input",function(){
+    taskIn.style.height="auto";
+    taskIn.style.height=Math.min(taskIn.scrollHeight,80)+"px";
+  });
+  taskIn.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){e.preventDefault();closeComposer(true)}
+  });
+  taskIn.addEventListener("blur",function(){
+    setTimeout(function(){if(composerOpen&&!drag)closeComposer(false)},200);
+  });
+
+  /* Keyboard positioning */
+  function syncKB(){
+    if(!window.visualViewport||!composerOpen)return;
+    var off=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
+    composer.style.bottom=Math.max(off,0)+"px";
+  }
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize",syncKB);
+    window.visualViewport.addEventListener("scroll",syncKB);
+  }
+})();
+</script>
+</body>
+</html>
