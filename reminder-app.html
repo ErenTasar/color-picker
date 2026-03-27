@@ -586,7 +586,7 @@ body::before{
     composer.classList.add("active");
     kbReady=false;
     requestAnimationFrame(function(){taskIn.focus({preventScroll:true})});
-    setTimeout(function(){kbReady=true},200);
+    setTimeout(function(){kbReady=true;syncKB()},200);
   }
 
   function closeComposer(save){
