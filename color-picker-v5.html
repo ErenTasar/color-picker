@@ -34,6 +34,8 @@ body::before{
 .cell[data-f="2"]{--c:69,212,138}
 .cell[data-f="3"]{--c:245,197,66}
 
+.picker{display:flex;flex-direction:column;align-items:center;width:100%}
+
 /* ── Row ── */
 .row{
   display:flex;align-items:center;
@@ -63,7 +65,7 @@ body::before{
 .track{
   width:100%;position:relative;height:48px;border-radius:24px;
   cursor:grab;
-  background:rgba(var(--c),.1);border:1px solid rgba(var(--c),.06);
+  background:rgba(var(--c),.12);border:1px solid rgba(var(--c),.06);
   transition:height .4s var(--ease),border-radius .4s,box-shadow .4s,border-color .3s;
 }
 .cell.on .track{
@@ -76,10 +78,10 @@ body::before{
 /* ── Fill ── */
 .fill{
   position:absolute;top:0;bottom:0;left:0;border-radius:24px;
-  background:rgba(var(--c),.55);
+  background:rgba(var(--c),.75);
   transition:width .1s ease-out,border-radius .4s;will-change:width;
 }
-.cell.on .fill{border-radius:40px;background:rgba(var(--c),.6)}
+.cell.on .fill{border-radius:40px;background:rgba(var(--c),.88)}
 .cell.snapping .fill{transition:width .25s var(--ease),border-radius .4s}
 
 /* ── Value label inside pill ── */
@@ -99,8 +101,8 @@ body::before{
   pointer-events:none;opacity:0;transition:opacity .4s;
 }
 .cell.on .ticks{opacity:1}
-.ticks b{display:block;width:1px;flex-shrink:0;background:rgba(255,255,255,.05);height:45%;border-radius:1px}
-.ticks b.m{height:60%;background:rgba(255,255,255,.1)}
+.ticks b{display:block;width:1px;flex-shrink:0;background:rgba(255,255,255,.06);height:45%;border-radius:1px}
+.ticks b.m{height:60%;background:rgba(255,255,255,.12)}
 
 /* ── Now marker ── */
 .now-mark{
@@ -117,19 +119,22 @@ body::before{
 .cell{animation:appear .5s ease both}
 .cell:nth-child(1){animation-delay:.05s}
 .cell:nth-child(3){animation-delay:.1s}
-.cell:nth-child(4){animation-delay:.15s}
-.cell:nth-child(6){animation-delay:.2s}
+.cell:nth-child(5){animation-delay:.15s}
+.cell:nth-child(7){animation-delay:.2s}
 </style>
 </head>
 <body>
 <div class="scene">
-  <div class="row" id="R">
+  <div class="picker">
+    <div class="row" id="R">
     <div class="cell" data-f="0"><div class="track"><div class="fill" id="f0"></div><span class="val" id="d0"></span><div class="ticks" id="t0"></div><div class="now-mark" id="n0"></div></div></div>
     <span class="sep">:</span>
     <div class="cell" data-f="1"><div class="track"><div class="fill" id="f1"></div><span class="val" id="d1"></span><div class="ticks" id="t1"></div><div class="now-mark" id="n1"></div></div></div>
+    <span class="sep">;</span>
     <div class="cell" data-f="2"><div class="track"><div class="fill" id="f2"></div><span class="val" id="d2"></span><div class="ticks" id="t2"></div><div class="now-mark" id="n2"></div></div></div>
     <span class="sep">/</span>
     <div class="cell" data-f="3"><div class="track"><div class="fill" id="f3"></div><span class="val" id="d3"></span><div class="ticks" id="t3"></div><div class="now-mark" id="n3"></div></div></div>
+    </div>
   </div>
 </div>
 <script>
