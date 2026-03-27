@@ -132,6 +132,21 @@ body::before{
 .fab:active{transform:translateX(-50%) scale(.9)}
 .fab.hidden{transform:translateX(-50%) scale(.6);opacity:0;pointer-events:none}
 
+/* ── Pull-to-add hint ── */
+.pull-hint{
+  position:fixed;left:-44px;top:50%;z-index:2;
+  width:44px;height:44px;border-radius:22px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:200;color:rgba(255,255,255,.4);
+  transform:translateY(-50%);
+  transition:left .15s,opacity .15s,transform .2s;
+  opacity:0;pointer-events:none;
+}
+.pull-hint.visible{opacity:1;left:12px}
+.pull-hint.triggered{transform:translateY(-50%) scale(1.15);background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+
 /* ═══════════════════════════════════════════
    SCREEN 2 — COMPOSER
    ═══════════════════════════════════════════ */
@@ -251,6 +266,7 @@ body::before{
   <div class="timeline" id="timeline"></div>
 </div>
 <button class="fab" id="fab">+</button>
+<div class="pull-hint" id="pullHint">+</div>
 
 <!-- ═══ Screen 2: Composer ═══ -->
 <div class="overlay" id="overlay"></div>
@@ -612,6 +628,7 @@ body::before{
 
   /* ── Pull-to-add: swipe right at scroll=0 opens composer ── */
   var pull={active:false,startX:0,startY:0,axisLocked:false,axis:null,triggered:false};
+  var pullHint=document.getElementById("pullHint");
   timeline.addEventListener("touchstart",function(e){
     if(composerOpen)return;
     var t=e.touches[0];
@@ -626,13 +643,17 @@ body::before{
       pull.axis=(Math.abs(dx)>Math.abs(dy)*2)?"x":"y";
     }
     if(pull.axis!=="x")return;
+    if(timeline.scrollLeft<2&&dx>20)pullHint.classList.add("visible");
     if(timeline.scrollLeft<2&&dx>70&&Math.abs(dy)<30){
       pull.triggered=true;
+      pullHint.classList.add("triggered");
+      if(navigator.vibrate)navigator.vibrate(1);
     }
   },{passive:true});
   timeline.addEventListener("touchend",function(){
     if(pull.triggered)openComposer();
     pull.active=false;
+    pullHint.classList.remove("visible","triggered");
   },{passive:true});
 
   taskIn.addEventListener("input",function(){
