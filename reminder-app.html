@@ -297,7 +297,7 @@ body::before{
   /* ═══════════════════════════════════════════
      TASKS
      ═══════════════════════════════════════════ */
-  var tasks=[],nextId=1;
+  var tasks=[],nextId=1,firstRender=true,lastAddedId=0;
   var FILLS=["cfill-b","cfill-p","cfill-g","cfill-y"];
 
   function urgencyW(ts){
@@ -354,7 +354,9 @@ body::before{
       var card=document.createElement("div");
       card.className="card";
       card.style.cssText="--w:"+w.toFixed(3)+";--dir:"+dir;
-      card.style.animationDelay=(i*.05)+"s";
+      if(firstRender)card.style.animationDelay=(i*.05)+"s";
+      else if(t.id===lastAddedId)card.style.animationDelay="0s";
+      else card.style.animation="none";
       card.dataset.id=t.id;
 
       card.innerHTML=
@@ -380,6 +382,7 @@ body::before{
   function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
 
   renderCards();
+  firstRender=false;
 
   /* Check circle tap */
   timeline.addEventListener("click",function(e){
@@ -461,7 +464,7 @@ body::before{
   }
 
   /* Drag state */
-  var drag=null,raf=0,lx=0,flx=-1;
+  var drag=null,raf=0,lx=0,flx=-1,pickerActive=false;
   var vx=[0,0,0],vt=[0,0,0],vi=0;
 
   function pcls(fi,on){
@@ -492,6 +495,7 @@ body::before{
     e.preventDefault();e.stopPropagation();
     if(raf){cancelAnimationFrame(raf);raf=0}
     var fi=+tr.parentNode.dataset.f,t0=pnow();
+    pickerActive=true;
     drag={fi:fi,mx:MX[fi],ms:MST[fi],ax:0,ai:0,dc:0,dt:t0,dv:-1,ld:0,sc:0,pL:0,pI:0};
     rowBounds();
     lx=gx(e);flx=lx;
@@ -536,6 +540,7 @@ body::before{
     for(var j=0;j<4;j++)pcells[j].style.flex=FLX[j][idx[j]];
     if(raf){cancelAnimationFrame(raf);raf=0}
     drag=null;
+    setTimeout(function(){pickerActive=false},250);
   }
 
   document.addEventListener("touchstart",pdown,{passive:false});
@@ -589,14 +594,16 @@ body::before{
       var title=taskIn.value.trim();
       if(title){
         var ts=makeTs(idx[0],idx[1],idx[2],idx[3]);
-        tasks.push({id:nextId++,title:title,h:idx[0],m:idx[1],mon:idx[2],day:idx[3],ts:ts});
+        var nid=nextId++;
+        lastAddedId=nid;
+        tasks.push({id:nid,title:title,h:idx[0],m:idx[1],mon:idx[2],day:idx[3],ts:ts});
         renderCards();
       }
     }
     taskIn.value="";taskIn.style.height="auto";
     taskIn.blur();
     composerOpen=false;kbReady=false;
-    composer.style.bottom="0";
+    composer.style.bottom="";
     composer.classList.remove("active");
     overlay.classList.remove("active");
     fab.classList.remove("hidden");
@@ -638,7 +645,7 @@ body::before{
     if(e.key==="Enter"){e.preventDefault();closeComposer(true)}
   });
   taskIn.addEventListener("blur",function(){
-    setTimeout(function(){if(composerOpen&&!drag)closeComposer(false)},200);
+    setTimeout(function(){if(composerOpen&&!drag&&!pickerActive)closeComposer(false)},200);
   });
 
   /* Keyboard positioning — debounce ilk 150ms (açılma geçişi sırasında zıplamayı önle) */
