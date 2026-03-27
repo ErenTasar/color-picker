@@ -623,10 +623,12 @@ body::before{
     if(pull.axis!=="x")return;
     if(timeline.scrollLeft<2&&dx>60){
       pull.triggered=true;
-      openComposer();
     }
   },{passive:true});
-  timeline.addEventListener("touchend",function(){pull.active=false},{passive:true});
+  timeline.addEventListener("touchend",function(){
+    if(pull.triggered)openComposer();
+    pull.active=false;
+  },{passive:true});
 
   taskIn.addEventListener("input",function(){
     taskIn.style.height="auto";
