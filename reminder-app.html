@@ -584,9 +584,7 @@ body::before{
     fab.classList.add("hidden");
     overlay.classList.add("active");
     composer.classList.add("active");
-    kbReady=false;
     requestAnimationFrame(function(){taskIn.focus({preventScroll:true})});
-    setTimeout(function(){kbReady=true;syncKB()},200);
   }
 
   function closeComposer(save){
@@ -602,7 +600,7 @@ body::before{
     }
     taskIn.value="";taskIn.style.height="auto";
     taskIn.blur();
-    composerOpen=false;kbReady=false;
+    composerOpen=false;
     composer.style.bottom="";
     composer.classList.remove("active");
     overlay.classList.remove("active");
@@ -648,10 +646,9 @@ body::before{
     setTimeout(function(){if(composerOpen&&!drag&&!pickerActive)closeComposer(false)},200);
   });
 
-  /* Keyboard positioning — debounce ilk 150ms (açılma geçişi sırasında zıplamayı önle) */
-  var kbReady=false;
+  /* Keyboard positioning */
   function syncKB(){
-    if(!window.visualViewport||!composerOpen||!kbReady)return;
+    if(!window.visualViewport||!composerOpen)return;
     var off=window.innerHeight-window.visualViewport.height-window.visualViewport.offsetTop;
     if(off>50)composer.style.bottom=off+"px";
   }
